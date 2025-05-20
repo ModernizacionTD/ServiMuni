@@ -11,7 +11,7 @@ class FuncionarioService extends BaseService
      *
      * @return array
      */
-    public function getAllFuncionario()
+    public function getAllFuncionarios()
     {
         try {
             $range = 'Funcionarios!A:E'; // Rango de datos para funcionarios (id, email, nombre, password, rol)
@@ -51,6 +51,19 @@ class FuncionarioService extends BaseService
             return [];
         }
     }
+
+        public function getByEmail($email)
+    {
+        $funcionarios = $this->getAllFuncionarios();
+        
+        foreach ($funcionarios as $item) {
+            if (isset($item['email']) && $item['email'] === $email) {
+                return $item;
+            }
+        }
+        
+        return null;
+    }
     
     /**
      * Obtiene un funcionario por su ID
@@ -64,7 +77,7 @@ class FuncionarioService extends BaseService
             \Log::info('Buscando funcionario con ID: ' . $id);
             
             // Obtener todos los funcionarios
-            $funcionarios = $this->getAllFuncionario();
+            $funcionarios = $this->getAllFuncionarios();
             
             // Buscar el funcionario con el ID especificado
             foreach ($funcionarios as $funcionario) {
@@ -93,7 +106,7 @@ class FuncionarioService extends BaseService
     {
         try {
             // Obtener todos los funcionarios
-            $funcionarios = $this->getAllFuncionario();
+            $funcionarios = $this->getAllFuncionarios();
             
             // Buscar el funcionario con el email especificado
             foreach ($funcionarios as $funcionario) {
@@ -121,7 +134,7 @@ class FuncionarioService extends BaseService
             \Log::info('Iniciando creación de funcionario: ' . $data['nombre']);
             
             // Obtener todos los funcionarios para determinar el próximo ID
-            $funcionarios = $this->getAllFuncionario();
+            $funcionarios = $this->getAllFuncionarios();
             $nextId = 1;
             
             if (!empty($funcionarios)) {
@@ -193,7 +206,7 @@ class FuncionarioService extends BaseService
             \Log::info('Iniciando actualización de funcionario ID: ' . $id);
             
             // Obtener todos los funcionarios para encontrar la fila correcta
-            $funcionarios = $this->getAllFuncionario();
+            $funcionarios = $this->getAllFuncionarios();
             $rowIndex = null;
             
             // Buscar la fila que corresponde al ID
@@ -259,7 +272,7 @@ class FuncionarioService extends BaseService
             \Log::info('Iniciando eliminación de funcionario ID: ' . $id);
             
             // Obtener todos los funcionarios
-            $funcionarios = $this->getAllFuncionario();
+            $funcionarios = $this->getAllFuncionarios();
             $rowIndex = null;
             
             // Buscar la fila que corresponde al ID

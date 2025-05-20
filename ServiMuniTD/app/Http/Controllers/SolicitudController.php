@@ -49,7 +49,7 @@ class SolicitudController extends Controller
             $busqueda = $request->input('busqueda');
             
             // Obtener todas las solicitudes
-            $todasSolicitudes = $this->solicitudService->getAll();
+            $todasSolicitudes = $this->solicitudService->getAllSolicitudes();
             
             // Aplicar filtro por estado
             if ($filtro !== 'todas') {
@@ -79,7 +79,7 @@ class SolicitudController extends Controller
             $requerimientos = [];
             $usuarios = [];
             
-            $todosRequerimientos = $this->requerimientoService->getAll();
+            $todosRequerimientos = $this->requerimientoService->getAllRequerimientos();
             foreach ($todosRequerimientos as $requerimiento) {
                 $requerimientos[$requerimiento['id_requerimiento']] = $requerimiento;
             }
@@ -88,7 +88,7 @@ class SolicitudController extends Controller
             $rutsUnicos = array_unique(array_column($solicitudes, 'rut_usuario'));
             foreach ($rutsUnicos as $rut) {
                 if (!empty($rut)) {
-                    $usuario = $this->usuarioService->getByRut($rut);
+                    $usuario = $this->usuarioService->getUsuarioByRut($rut);
                     if ($usuario) {
                         $usuarios[$rut] = $usuario;
                     }
@@ -124,7 +124,7 @@ class SolicitudController extends Controller
         
         // Si se proporciona un RUT, buscar el usuario
         if ($rut) {
-            $usuario = $this->usuarioService->getByRut($rut);
+            $usuario = $this->usuarioService->getUsuarioByRut($rut);
             
             if (!$usuario) {
                 return redirect()->route('buscar.usuario')
@@ -134,9 +134,9 @@ class SolicitudController extends Controller
         
         try {
             // Obtener todos los departamentos para el select
-            $departamentos = $this->departamentoService->getAll();
+            $departamentos = $this->departamentoService->getAllDepartamentos();
             // Obtener todos los requerimientos para el select
-            $requerimientos = $this->requerimientoService->getAll();
+            $requerimientos = $this->requerimientoService->getAllRequerimientos();
             
             return view('solicitudes.create', [
                 'departamentos' => $departamentos,  // Añadimos esta línea
@@ -173,7 +173,7 @@ class SolicitudController extends Controller
 
         try {
             // Verificar si el usuario existe
-            $usuario = $this->usuarioService->getByRut($request->rut_usuario);
+            $usuario = $this->usuarioService->getUsuarioByRut($request->rut_usuario);
             
             if (!$usuario) {
                 return back()->withInput()
@@ -231,7 +231,7 @@ class SolicitudController extends Controller
         
         try {
             // Obtener la solicitud
-            $solicitud = $this->solicitudService->getById($id);
+            $solicitud = $this->solicitudService->getSolicitudById($id);
             
             if (!$solicitud) {
                 return redirect()->route('solicitudes.index')
@@ -239,12 +239,12 @@ class SolicitudController extends Controller
             }
             
             // Obtener información relacionada
-            $usuario = $this->usuarioService->getByRut($solicitud['rut_usuario']);
+            $usuario = $this->usuarioService->getUsuarioByRut($solicitud['rut_usuario']);
             
             // Obtener el requerimiento asociado si existe
             $requerimiento = null;
             if (!empty($solicitud['requerimiento_id'])) {
-                $requerimiento = $this->requerimientoService->getById($solicitud['requerimiento_id']);
+                $requerimiento = $this->requerimientoService->getRequerimientoById($solicitud['requerimiento_id']);
             }
             
             // Obtener información de los funcionarios asignados
@@ -253,15 +253,15 @@ class SolicitudController extends Controller
             $funcionarioTecnico = null;
             
             if (!empty($solicitud['rut_ingreso'])) {
-                $funcionarioIngreso = $this->funcionarioService->getById($solicitud['rut_ingreso']);
+                $funcionarioIngreso = $this->funcionarioService->getFuncionarioById($solicitud['rut_ingreso']);
             }
             
             if (!empty($solicitud['rut_gestor'])) {
-                $funcionarioGestor = $this->funcionarioService->getById($solicitud['rut_gestor']);
+                $funcionarioGestor = $this->funcionarioService->getByFuncionarioId($solicitud['rut_gestor']);
             }
             
             if (!empty($solicitud['rut_tecnico'])) {
-                $funcionarioTecnico = $this->funcionarioService->getById($solicitud['rut_tecnico']);
+                $funcionarioTecnico = $this->funcionarioService->getByFuncionarioId($solicitud['rut_tecnico']);
             }
             
             return view('solicitudes.show', [
@@ -291,7 +291,7 @@ class SolicitudController extends Controller
         
         try {
             // Obtener la solicitud
-            $solicitud = $this->solicitudService->getById($id);
+            $solicitud = $this->solicitudService->getSolicitudById($id);
             
             if (!$solicitud) {
                 return redirect()->route('solicitudes.index')
@@ -299,13 +299,13 @@ class SolicitudController extends Controller
             }
             
             // Obtener información relacionada
-            $usuario = $this->usuarioService->getByRut($solicitud['rut_usuario']);
+            $usuario = $this->usuarioService->getUsuarioByRut($solicitud['rut_usuario']);
             
             // Obtener todos los requerimientos para el select
-            $requerimientos = $this->requerimientoService->getAll();
+            $requerimientos = $this->requerimientoService->getAllRequerimientos();
             
             // Obtener todos los funcionarios para los selects de asignación
-            $funcionarios = $this->funcionarioService->getAll();
+            $funcionarios = $this->funcionarioService->getAllFuncionarios();
             
             return view('solicitudes.edit', [
                 'solicitud' => $solicitud,
@@ -347,7 +347,7 @@ class SolicitudController extends Controller
         
         try {
             // Obtener la solicitud actual
-            $solicitudActual = $this->solicitudService->getById($id);
+            $solicitudActual = $this->solicitudService->getSolicitudById($id);
             
             if (!$solicitudActual) {
                 return redirect()->route('solicitudes.index')
@@ -400,7 +400,7 @@ class SolicitudController extends Controller
             }
             
             // Actualizar la solicitud
-            $solicitud = $this->solicitudService->update($id, $data);
+            $solicitud = $this->solicitudService->updateSolicitud($id, $data);
             
             return redirect()->route('solicitudes.show', $id)
                 ->with('success', 'Solicitud actualizada correctamente.');
@@ -423,7 +423,7 @@ class SolicitudController extends Controller
         
         try {
             // Obtener la solicitud para poder eliminar la imagen asociada
-            $solicitud = $this->solicitudService->getById($id);
+            $solicitud = $this->solicitudService->getSolicitudById($id);
             
             if (!$solicitud) {
                 return redirect()->route('solicitudes.index')
@@ -439,7 +439,7 @@ class SolicitudController extends Controller
             }
             
             // Eliminar la solicitud
-            $this->solicitudService->delete($id);
+            $this->solicitudService->deleteSolicitud($id);
             
             return redirect()->route('solicitudes.index')
                 ->with('success', 'Solicitud eliminada correctamente.');
@@ -465,7 +465,7 @@ class SolicitudController extends Controller
         
         try {
             // Verificar si el funcionario existe
-            $funcionario = $this->funcionarioService->getById($request->rut_gestor);
+            $funcionario = $this->funcionarioService->geFuncionarioById($request->rut_gestor);
             
             if (!$funcionario) {
                 return back()->with('error', 'El funcionario seleccionado no existe.');
@@ -498,7 +498,7 @@ class SolicitudController extends Controller
         
         try {
             // Verificar si el funcionario existe
-            $funcionario = $this->funcionarioService->getById($request->rut_tecnico);
+            $funcionario = $this->funcionarioService->getFuncionarioById($request->rut_tecnico);
             
             if (!$funcionario) {
                 return back()->with('error', 'El funcionario seleccionado no existe.');
@@ -589,7 +589,7 @@ class SolicitudController extends Controller
             $localidad = $request->input('localidad');
             
             // Obtener todas las solicitudes
-            $todasSolicitudes = $this->solicitudService->getAll();
+            $todasSolicitudes = $this->solicitudService->getAllSolicitudes();
             
             // Filtrar por fecha
             $solicitudesFiltradas = array_filter($todasSolicitudes, function($solicitud) use ($fechaInicio, $fechaFin) {

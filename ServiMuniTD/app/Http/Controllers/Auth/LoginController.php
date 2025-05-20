@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\DataService;
+use App\Services\FuncionarioService;
 use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
-    protected $dataService;
+    protected $funcionarioService;
 
-    public function __construct(DataService $dataService)
+    public function __construct(FuncionarioService $funcionarioService)
     {
-        $this->dataService = $dataService;
+        $this->funcionarioService = $funcionarioService;
     }
 
     public function showLoginForm()
@@ -27,7 +27,7 @@ class LoginController extends Controller
             'password' => 'required',
         ]);
 
-        $user = $this->dataService->getByEmail($request->email);
+        $user = $this->funcionarioService->getByEmail($request->email);
 
         if (!$user) {
             return back()->withErrors([

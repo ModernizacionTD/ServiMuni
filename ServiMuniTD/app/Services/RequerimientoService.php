@@ -7,7 +7,7 @@ use Google\Service\Sheets;
 class RequerimientoService extends BaseService
 {
     // Métodos para gestionar Requerimientos
-    public function getAll()
+    public function getAllRequerimientos()
     {
         try {
             // Debug: Comprobar el ID de la hoja
@@ -65,13 +65,13 @@ class RequerimientoService extends BaseService
      * @param int $id
      * @return array|null
      */
-    public function getById($id)
+    public function getRequerimientosById($id)
     {
         try {
             \Log::info('Buscando requerimiento con ID: ' . $id);
             
             // Obtener todos los requerimientos
-            $requerimientos = $this->getAll();
+            $requerimientos = $this->getAllRequerimientos();
             
             // Buscar el requerimiento con el ID especificado
             foreach ($requerimientos as $requerimiento) {
@@ -102,7 +102,7 @@ class RequerimientoService extends BaseService
             \Log::info('Iniciando creación de requerimiento: ' . $data['nombre']);
             
             // Obtener todos los requerimientos para determinar el próximo ID
-            $requerimientos = $this->getAll();
+            $requerimientos = $this->getAllRequerimientos();
             $nextId = 1;
             
             if (!empty($requerimientos)) {
@@ -201,13 +201,13 @@ class RequerimientoService extends BaseService
      * @param array $data
      * @return array
      */
-    public function update($id, $data)
+    public function updateRequerimientos($id, $data)
     {
         try {
             \Log::info('Iniciando actualización de requerimiento ID: ' . $id);
             
             // Obtener todos los requerimientos para encontrar la fila correcta
-            $requerimientos = $this->getAll();
+            $requerimientos = $this->getAllRequerimientos();
             $rowIndex = null;
             
             // Buscar la fila que corresponde al ID
@@ -279,13 +279,13 @@ class RequerimientoService extends BaseService
      * @param int $id
      * @return bool
      */
-    public function delete($id)
+    public function deleteRequerimientos($id)
     {
         try {
             \Log::info('Iniciando eliminación de requerimiento ID: ' . $id);
             
             // Obtener todos los requerimientos
-            $requerimientos = $this->getAll();
+            $requerimientos = $this->getAllRequerimientos();
             $rowIndex = null;
             
             // Buscar la fila que corresponde al ID

@@ -11,7 +11,7 @@ class SolicitudService extends BaseService
      *
      * @return array
      */
-    public function getAll()
+    public function getAllSolicitudes()
     {
         try {
             $range = 'Solicitudes!A:Q'; // Rango para todos los campos de solicitudes
@@ -77,13 +77,13 @@ class SolicitudService extends BaseService
      * @param string $id
      * @return array|null
      */
-    public function getById($id)
+    public function getSolicitudById($id)
     {
         try {
             \Log::info('Buscando solicitud con ID: ' . $id);
             
             // Obtener todas las solicitudes
-            $solicitudes = $this->getAll();
+            $solicitudes = $this->getAllSolicitudes();
             
             // Buscar la solicitud con el ID especificado
             foreach ($solicitudes as $solicitud) {
@@ -114,7 +114,7 @@ class SolicitudService extends BaseService
             \Log::info('Buscando solicitudes para el usuario con RUT: ' . $rutUsuario);
             
             // Obtener todas las solicitudes
-            $solicitudes = $this->getAll();
+            $solicitudes = $this->getAllSolicitudes();
             
             // Filtrar por rut_usuario
             $filteredSolicitudes = array_filter($solicitudes, function($solicitud) use ($rutUsuario) {
@@ -142,7 +142,7 @@ class SolicitudService extends BaseService
             \Log::info('Buscando solicitudes para el requerimiento ID: ' . $requerimientoId);
             
             // Obtener todas las solicitudes
-            $solicitudes = $this->getAll();
+            $solicitudes = $this->getAllSolicitudes();
             
             // Filtrar por requerimiento_id
             $filteredSolicitudes = array_filter($solicitudes, function($solicitud) use ($requerimientoId) {
@@ -170,7 +170,7 @@ class SolicitudService extends BaseService
             \Log::info('Buscando solicitudes con estado: ' . $estado);
             
             // Obtener todas las solicitudes
-            $solicitudes = $this->getAll();
+            $solicitudes = $this->getAllSolicitudes();
             
             // Filtrar por estado
             $filteredSolicitudes = array_filter($solicitudes, function($solicitud) use ($estado) {
@@ -192,13 +192,13 @@ class SolicitudService extends BaseService
      * @param array $data
      * @return array
      */
-    public function create($data)
+    public function createSolicitud($data)
     {
         try {
             \Log::info('Iniciando creación de solicitud');
             
             // Obtener todas las solicitudes para determinar el próximo ID
-            $solicitudes = $this->getAll();
+            $solicitudes = $this->getAllSolicitudes();
             $nextId = 1;
             
             if (!empty($solicitudes)) {
@@ -298,13 +298,13 @@ class SolicitudService extends BaseService
      * @param array $data
      * @return array
      */
-    public function update($id, $data)
+    public function updateSolicitud($id, $data)
     {
         try {
             \Log::info('Iniciando actualización de solicitud ID: ' . $id);
             
             // Obtener todas las solicitudes para encontrar la fila correcta
-            $solicitudes = $this->getAll();
+            $solicitudes = $this->getAllSolicitudes();
             $rowIndex = null;
             $solicitudActual = null;
             
@@ -385,13 +385,13 @@ class SolicitudService extends BaseService
      * @param string $id
      * @return bool
      */
-    public function delete($id)
+    public function deleteSolicitud($id)
     {
         try {
             \Log::info('Iniciando eliminación de solicitud ID: ' . $id);
             
             // Obtener todas las solicitudes
-            $solicitudes = $this->getAll();
+            $solicitudes = $this->getAllSolicitudes();
             $rowIndex = null;
             
             // Buscar la fila que corresponde al ID
@@ -455,7 +455,7 @@ class SolicitudService extends BaseService
             \Log::info("Actualizando estado de solicitud ID: $id a '$estado'");
             
             // Obtener la solicitud actual
-            $solicitud = $this->getById($id);
+            $solicitud = $this->getSolicitudById($id);
             
             if (!$solicitud) {
                 throw new \Exception("Solicitud con ID $id no encontrada");
@@ -548,7 +548,7 @@ class SolicitudService extends BaseService
             \Log::info("Buscando solicitudes entre fechas: $fechaInicio y $fechaFin");
             
             // Obtener todas las solicitudes
-            $solicitudes = $this->getAll();
+            $solicitudes = $this->getAllSolicitudes();
             
             // Filtrar por rango de fechas
             $filteredSolicitudes = array_filter($solicitudes, function($solicitud) use ($fechaInicio, $fechaFin) {
@@ -580,7 +580,7 @@ class SolicitudService extends BaseService
     {
         try {
             // Obtener todas las solicitudes
-            $solicitudes = $this->getAll();
+            $solicitudes = $this->getAllSolicitudes();
             
             // Inicializar estadísticas
             $estadisticas = [
