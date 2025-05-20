@@ -1,0 +1,84 @@
+/* Estilos para la tabla y filtros */
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.card-title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.header-filters {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    position: relative;
+    max-width: 300px;
+    width: 100%;
+}
+
+.search-box i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+}
+
+.search-box input {
+    padding-left: 35px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+}
+
+/* Estilos de badges */
+.badge {
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: capitalize;
+}
+
+.bg-danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.bg-primary {
+    background-color: #2563eb;
+    color: white;
+}
+
+.bg-success {
+    background-color: #10b981;
+    color: white;
+}
+
+.bg-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+.bg-warning {
+    background-color: #f59e0b;
+    color: white;
+}
+.bg-info {
+    background-color: #3b82f6;
+    color: white;
+}
+.bg-light {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+.bg-dark {
+    background-color: #212529;
+    color: white;
+}

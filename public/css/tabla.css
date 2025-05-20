@@ -1,0 +1,296 @@
+/* Variables CSS básicas para mantener consistencia */
+:root {
+    --primary-color: #3867d6;
+    --secondary-color: #8795a1;
+    --success-color: #47d847;
+    --danger-color: #f85353;
+    --border-color: #dce1e9;
+    --bg-white: #ffffff;
+    --bg-light: #f8f9fa;
+    --text-color: #2c3e50;
+    --text-light: #6c757d;
+    --text-muted: #8795a1;
+    --border-radius: 8px;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
+}
+
+/* Ajuste fino para el icono del título (opcional) */
+.card-title i.fa-clipboard-list {
+    margin-right: 10px;
+    font-size: 1.1em;
+    color: #3867d6;
+}
+
+/* ===== HEADER Y FILTROS ===== */
+
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(56, 103, 214, 0.15);
+    outline: none;
+}
+
+/* Botón reset filtros */
+#resetFilters {
+    background-color: var(--bg-light);
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+#resetFilters:hover {
+    background-color: #e9ecef;
+}
+
+#resetFilters i {
+    font-size: 0.9rem;
+}
+
+/* Botones con iconos */
+.btn i {
+    margin-right: 8px;
+}
+
+/* Botones de solo icono */
+.action-buttons .btn i {
+    margin-right: 0;
+}
+
+/* ===== TABLA DE DATOS ===== */
+/* Tabla */
+.table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Encabezados de tabla */
+.table th {
+    background-color: var(--bg-light);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    padding: 12px 16px;
+    border-top: none;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* Celdas de la tabla */
+.table td {
+    padding: 12px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Hover en filas */
+.table tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+
+
+/* Celdas con texto largo */
+.address-cell {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Enlaces en tablas */
+.email-link, .phone-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.email-link:hover, .phone-link:hover {
+    text-decoration: underline;
+}
+
+/* Badges para estados (sí/no) */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.bg-success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.bg-secondary {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+/* Contenedor de botones de acción */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.details-section {
+    margin-bottom: 24px;
+}
+
+.section-title {
+    font-size: 1rem;
+    margin-bottom: 15px;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eaedf3;
+}
+
+.section-title i {
+    color: var(--primary-color);
+    margin-right: 8px;
+}
+
+/* Grid para detalles */
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.detail-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.detail-value {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+/* Acciones del panel */
+.details-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-light);
+}
+
+/* ===== PAGINACIÓN Y ESTADO VACÍO ===== */
+/* Paginación */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-top: 1px solid var(--border-color);
+    margin-top: 16px;
+}
+
+.pagination-info {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.pagination {
+    margin: 0;
+}
+
+/* Estado vacío */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.empty-state-text {
+    font-size: 1.1rem;
+    color: var(--text-light);
+    margin-bottom: 20px;
+}
+
+/* ===== RESPONSIVIDAD ===== */
+@media (max-width: 992px) {
+    .header-filters {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .search-box,
+    .filter-container {
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    #resetFilters {
+        margin-top: 5px;
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .header-actions .btn-primary {
+        align-self: flex-start;
+    }
+    
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 576px) {
+    .table th,
+    .table td {
+        padding: 10px 12px;
+    }
+    
+    .card-header {
+        padding: 16px;
+    }
+}
