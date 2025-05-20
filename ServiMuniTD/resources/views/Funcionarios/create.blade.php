@@ -54,12 +54,30 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group mb-3">
+                                <label for="departamento" class="form-label">Departamento <span class="text-danger">*</span></label>
+                                <select id="departamento" name="departamento" class="form-control @error('rol') is-invalid @enderror" required>
+                                    <option value="">Seleccionar rol...</option>
+                                    @foreach($departamentos as $departamento)
+                                        <option value="{{ $departamento['id'] }}">
+                                            {{ $departamento['nombre'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('departamento')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
                                 <label for="rol" class="form-label">Rol del Sistema <span class="text-danger">*</span></label>
                                 <select id="rol" name="rol" class="form-control @error('rol') is-invalid @enderror" required>
                                     <option value="">Seleccionar rol...</option>
                                     <option value="admin" {{ old('rol') == 'admin' ? 'selected' : '' }}>Administrador</option>
-                                    <option value="funcionario" {{ old('rol') == 'funcionario' ? 'selected' : '' }}>Funcionario</option>
-                                    <option value="usuario" {{ old('rol') == 'usuario' ? 'selected' : '' }}>Usuario</option>
+                                    <option value="desarrollador" {{ old('rol') == 'desarrollador' ? 'selected' : '' }}>Desarrollador</option>
+                                    <option value="orientador" {{ old('rol') == 'orientador' ? 'selected' : '' }}>Orientador</option>
+                                    <option value="gestor" {{ old('rol') == 'gestor' ? 'selected' : '' }}>Gestor</option>
+                                    <option value="tecnico" {{ old('rol') == 'tecnico' ? 'selected' : '' }}>Técnico</option>
                                 </select>
                                 <small class="text-muted">Define los permisos que tendrá en el sistema</small>
                                 @error('rol')
@@ -112,79 +130,7 @@
                 </div>
             </div>
             
-            <!-- Permisos adicionales -->
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Permisos Adicionales</h5>
-                    <small class="text-muted">Los permisos se asignan automáticamente según el rol seleccionado. Aquí puede agregar permisos adicionales.</small>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-check mb-3">
-                                <input type="checkbox" id="perm_dashboard" name="permisos[dashboard]" class="form-check-input" 
-                                    value="1" {{ old('permisos.dashboard') ? 'checked' : '' }}>
-                                <label for="perm_dashboard" class="form-check-label">Acceso al Dashboard</label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="form-check mb-3">
-                                <input type="checkbox" id="perm_reportes" name="permisos[reportes]" class="form-check-input" 
-                                    value="1" {{ old('permisos.reportes') ? 'checked' : '' }}>
-                                <label for="perm_reportes" class="form-check-label">Ver Reportes</label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="form-check mb-3">
-                                <input type="checkbox" id="perm_config" name="permisos[config]" class="form-check-input" 
-                                    value="1" {{ old('permisos.config') ? 'checked' : '' }}>
-                                <label for="perm_config" class="form-check-label">Configuración del Sistema</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-check mb-3">
-                                <input type="checkbox" id="perm_usuarios" name="permisos[usuarios]" class="form-check-input" 
-                                    value="1" {{ old('permisos.usuarios') ? 'checked' : '' }}>
-                                <label for="perm_usuarios" class="form-check-label">Gestión de Usuarios</label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="form-check mb-3">
-                                <input type="checkbox" id="perm_departamentos" name="permisos[departamentos]" class="form-check-input" 
-                                    value="1" {{ old('permisos.departamentos') ? 'checked' : '' }}>
-                                <label for="perm_departamentos" class="form-check-label">Gestión de Departamentos</label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="form-check mb-3">
-                                <input type="checkbox" id="perm_requerimientos" name="permisos[requerimientos]" class="form-check-input" 
-                                    value="1" {{ old('permisos.requerimientos') ? 'checked' : '' }}>
-                                <label for="perm_requerimientos" class="form-check-label">Gestión de Requerimientos</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Notificaciones -->
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Notificaciones</h5>
-                </div>
-                <div class="card-body">
-                    <div class="form-check form-switch mb-3">
-                        <input type="checkbox" id="notificar_creacion" name="notificar_creacion" class="form-check-input" value="1" checked>
-                        <label for="notificar_creacion" class="form-check-label">Enviar correo electrónico al funcionario con sus credenciales</label>
-                    </div>
-                </div>
-            </div>
+
             
             <div class="alert alert-info">
                 <i class="fas fa-info-circle me-2"></i>

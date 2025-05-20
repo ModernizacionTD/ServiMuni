@@ -61,9 +61,6 @@
     background-color: rgba(0, 0, 0, 0.02);
 }
 
-.user-row {
-    transition: background-color 0.2s;
-}
 
 .address-cell {
     max-width: 200px;
@@ -87,67 +84,6 @@
 .action-buttons {
     display: flex;
     gap: 8px;
-}
-
-/* Estilos para el panel de detalles */
-.user-profile-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.user-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 2rem;
-    font-weight: 600;
-    margin-right: 20px;
-}
-
-.user-info h3 {
-    margin: 0 0 5px;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.user-type {
-    display: inline-block;
-    background-color: #e9ecef;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    color: var(--text-color);
-}
-
-.user-details-panel {
-    background-color: var(--bg-white);
-    border-radius: var(--border-radius);
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
-    padding: 25px;
-    border: 1px solid var(--border-color);
-    transition: all 0.3s ease;
-}
-
-.user-details-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.user-details-header h3 {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
 }
 
 .details-actions {

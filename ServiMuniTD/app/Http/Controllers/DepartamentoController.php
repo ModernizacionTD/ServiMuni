@@ -26,7 +26,7 @@ class DepartamentoController extends Controller
         }
         
         try {
-            $departamentos = $this->dataService->getAllDepartamentos();
+            $departamentos = $this->departamentoService->getAllDepartamentos();
             
             return view('departamentos.index', [
                 'departamentos' => $departamentos,
@@ -67,7 +67,7 @@ class DepartamentoController extends Controller
         ]);
 
         try {
-            $result = $this->dataService->createDepartamento($request->nombre);
+            $result = $this->departamentoService->createDepartamento($request->nombre);
             
             return redirect()->route('departamentos.index')
                 ->with('success', 'Departamento creado correctamente.');
@@ -89,7 +89,7 @@ class DepartamentoController extends Controller
         }
         
         try {
-            $departamento = $this->dataService->getDepartamentoById($id);
+            $departamento = $this->departamentoService->getDepartamentoById($id);
             
             if (!$departamento) {
                 return redirect()->route('departamentos.index')
@@ -120,7 +120,7 @@ class DepartamentoController extends Controller
         ]);
 
         try {
-            $result = $this->dataService->updateDepartamento($id, $request->nombre);
+            $result = $this->departamentoService->updateDepartamento($id, $request->nombre);
             
             return redirect()->route('departamentos.index')
                 ->with('success', 'Departamento actualizado correctamente.');
@@ -141,7 +141,7 @@ class DepartamentoController extends Controller
         }
         
         try {
-            $result = $this->dataService->deleteDepartamento($id);
+            $result = $this->departamentoService->deleteDepartamento($id);
             
             return redirect()->route('departamentos.index')
                 ->with('success', 'Departamento eliminado correctamente.');

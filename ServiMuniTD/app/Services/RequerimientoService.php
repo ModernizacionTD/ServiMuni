@@ -65,7 +65,7 @@ class RequerimientoService extends BaseService
      * @param int $id
      * @return array|null
      */
-    public function getRequerimientosById($id)
+    public function getRequerimientoById($id)
     {
         try {
             \Log::info('Buscando requerimiento con ID: ' . $id);
@@ -96,7 +96,7 @@ class RequerimientoService extends BaseService
      * @param array $data
      * @return array
      */
-    public function create($data)
+    public function createRequerimiento($data)
     {
         try {
             \Log::info('Iniciando creación de requerimiento: ' . $data['nombre']);
@@ -201,7 +201,7 @@ class RequerimientoService extends BaseService
      * @param array $data
      * @return array
      */
-    public function updateRequerimientos($id, $data)
+    public function updateRequerimiento($id, $data)
     {
         try {
             \Log::info('Iniciando actualización de requerimiento ID: ' . $id);

@@ -94,7 +94,8 @@
                     </div>
                 </div>
             </div>
-            
+            <!-- Sección de Permisos (solo para administradores) -->
+            @if(session('user_rol') == 'admin')
             <!-- Seguridad -->
             <div class="card mb-4">
                 <div class="card-header bg-light">
@@ -130,41 +131,6 @@
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Sección de Permisos (solo para administradores) -->
-            @if(session('user_rol') == 'admin')
-            <div class="card mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Permisos Adicionales</h5>
-                </div>
-                <div class="card-body">
-                    <div class="permissions-grid">
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" value="1" id="perm_gestion_usuarios" name="permisos[gestion_usuarios]">
-                            <label class="form-check-label" for="perm_gestion_usuarios">
-                                Gestión de Usuarios
-                            </label>
-                            <small class="text-muted d-block">Permite crear, editar y eliminar usuarios en el sistema.</small>
-                        </div>
-                        
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" value="1" id="perm_ver_reportes" name="permisos[ver_reportes]">
-                            <label class="form-check-label" for="perm_ver_reportes">
-                                Ver Reportes
-                            </label>
-                            <small class="text-muted d-block">Permite acceder a los reportes del sistema.</small>
-                        </div>
-                        
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" value="1" id="perm_config_sistema" name="permisos[config_sistema]">
-                            <label class="form-check-label" for="perm_config_sistema">
-                                Configuración del Sistema
-                            </label>
-                            <small class="text-muted d-block">Permite modificar la configuración general del sistema.</small>
                         </div>
                     </div>
                 </div>

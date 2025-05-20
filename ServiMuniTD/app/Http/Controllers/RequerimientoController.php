@@ -3,16 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Services\DataService;
+use App\Services\RequerimientoService;
+use App\Services\DepartamentoService;
 use Illuminate\Http\Request;
 
 class RequerimientoController extends Controller
 {
-   protected $dataService;
+    protected $requerimientoService;
+    protected $departamentoService;
 
-    public function __construct(DataService $dataService)
-    {
-        $this->dataService = $dataService;
+    public function __construct(
+        RequerimientoService $requerimientoService,
+        DepartamentoService $departamentoService // Añade esta inyección
+    ) {
+        $this->requerimientoService = $requerimientoService;
+        $this->departamentoService = $departamentoService; // Inicializa la propiedad
     }
 
     /**
@@ -26,8 +31,8 @@ class RequerimientoController extends Controller
         }
         
         try {
-            $requerimientos = $this->dataService->getAllRequerimientos();
-            $departamentos = $this->dataService->getAllDepartamentos();
+            $requerimientos = $this->requerimientoService->getAllRequerimientos();
+            $departamentos = $this->departamentoService->getAllDepartamentos();
             
             return view('requerimientos.index', [
                 'requerimientos' => $requerimientos,
@@ -51,7 +56,7 @@ class RequerimientoController extends Controller
         
         try {
             // Obtener todos los departamentos para el select
-            $departamentos = $this->dataService->getAllDepartamentos();
+            $departamentos = $this->departamentoService->getAllDepartamentos();
             
             return view('requerimientos.create', [
                 'departamentos' => $departamentos,
@@ -83,7 +88,7 @@ class RequerimientoController extends Controller
 
         try {
             // Preparar los datos
-            $data = [
+            $requerimiento = [
                 'departamento_id' => $request->departamento_id,
                 'nombre' => $request->nombre,
                 'descripcion_req' => $request->descripcion_req,
@@ -92,7 +97,7 @@ class RequerimientoController extends Controller
                 'publico' => $request->has('publico') ? true : false,
             ];
             
-            $result = $this->dataService->createRequerimiento($data);
+            $result = $this->requerimientoService->createRequerimiento($requerimiento);
             
             return redirect()->route('requerimientos.index')
                 ->with('success', 'Requerimiento creado correctamente.');
@@ -114,7 +119,7 @@ class RequerimientoController extends Controller
         }
         
         try {
-            $requerimiento = $this->dataService->getRequerimientoById($id);
+            $requerimiento = $this->requerimientoService->getRequerimientoById($id);
             
             if (!$requerimiento) {
                 return redirect()->route('requerimientos.index')
@@ -122,7 +127,7 @@ class RequerimientoController extends Controller
             }
             
             // Obtener todos los departamentos para el select
-            $departamentos = $this->dataService->getAllDepartamentos();
+            $departamentos = $this->departamentoService->getAllDepartamentos();
             
             return view('requerimientos.edit', [
                 'requerimiento' => $requerimiento,
@@ -156,7 +161,7 @@ class RequerimientoController extends Controller
 
         try {
             // Preparar los datos
-            $data = [
+            $requerimiento = [
                 'id_requerimiento' => $id,
                 'departamento_id' => $request->departamento_id,
                 'nombre' => $request->nombre,
@@ -166,7 +171,7 @@ class RequerimientoController extends Controller
                 'publico' => $request->has('publico') ? true : false,
             ];
             
-            $result = $this->dataService->updateRequerimiento($id, $data);
+            $result = $this->requerimientoService->updateRequerimiento($id, $requerimiento);
             
             return redirect()->route('requerimientos.index')
                 ->with('success', 'Requerimiento actualizado correctamente.');
@@ -188,7 +193,7 @@ class RequerimientoController extends Controller
         }
         
         try {
-            $result = $this->dataService->deleteRequerimiento($id);
+            $result = $this->requerimientoService->deleteRequerimiento($id);
             
             return redirect()->route('requerimientos.index')
                 ->with('success', 'Requerimiento eliminado correctamente.');

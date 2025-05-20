@@ -10,19 +10,18 @@
 
 <div class="card">
     <div class="card-header">
-        <div class="header-actions">
-            <h2 class="card-title"><i class="fas fa-users me-2"></i>Funcionarios del Sistema</h2>
-            <a href="{{ route('funcionarios.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nuevo Funcionario
-            </a>
-        </div>
-        
         <div class="header-filters mt-3">
             <div class="search-box">
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchInput" class="form-control" placeholder="Buscar funcionario...">
             </div>
         </div>
+
+        <div class="header-actions">
+            <a href="{{ route('funcionarios.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Funcionario
+            </a>
+        </div>  
     </div>
     
     <div class="card-body">

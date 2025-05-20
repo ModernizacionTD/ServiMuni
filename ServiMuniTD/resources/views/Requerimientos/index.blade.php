@@ -7,23 +7,50 @@
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/tabla.css') }}">
 <link rel="stylesheet" href="{{ asset('css/requerimientos.css') }}">
-<link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
 
 <div class="card">
     <div class="card-header">
-        <div class="header-actions">
-            <h2 class="card-title"><i class="fas fa-clipboard-list me-2"></i>Requerimientos del Sistema</h2>
-            <a href="{{ route('requerimientos.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nuevo Requerimiento
-            </a>
-        </div>
-        
-        <div class="header-filters mt-3">
+        <div class="header-filters">
             <div class="search-box">
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchInput" class="form-control" placeholder="Buscar requerimiento...">
             </div>
+            
+            <div class="filter-container">
+                <select id="departamentoFilter" class="form-select">
+                    <option value="">Todos los departamentos</option>
+                    @foreach($departamentos as $departamento)
+                        <option value="{{ $departamento['id'] }}">{{ $departamento['nombre'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <div class="filter-container">
+                <select id="privadoFilter" class="form-select">
+                    <option value="">Filtrar por privado</option>
+                    <option value="1">Sí</option>
+                    <option value="0">No</option>
+                </select>
+            </div>
+            
+            <div class="filter-container">
+                <select id="publicoFilter" class="form-select">
+                    <option value="">Filtrar por público</option>
+                    <option value="1">Sí</option>
+                    <option value="0">No</option>
+                </select>
+            </div>
+            
+            <button id="resetFilters" class="btn btn-outline-secondary">
+                <i class="fas fa-sync-alt"></i> Restablecer filtros
+            </button>
+
+                    <div class="header-actions">
+            <a href="{{ route('requerimientos.create') }}" class="btn btn-primary btn-nuevo">
+                <i class="fas fa-plus"></i> Nuevo Requerimiento
+            </a>
+        </div>
         </div>
     </div>
     
@@ -55,7 +82,10 @@
                 </thead>
                 <tbody>
                     @forelse($requerimientos as $requerimiento)
-                        <tr class="user-row">
+                        <tr class="user-row" 
+                            data-departamento-id="{{ $requerimiento['departamento_id'] }}"
+                            data-privado="{{ $requerimiento['privado'] ? '1' : '0' }}"
+                            data-publico="{{ $requerimiento['publico'] ? '1' : '0' }}">
                             <td>{{ $requerimiento['id_requerimiento'] }}</td>
                             <td>
                                 @foreach($departamentos as $departamento)
@@ -203,109 +233,165 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar tooltips de forma segura
-    try {
-        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-            const tooltipTriggerList = document.querySelectorAll('[title]');
-            [].slice.call(tooltipTriggerList).forEach(function (tooltipTriggerEl) {
-                new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-        }
-    } catch (error) {
-        console.error("Error al inicializar tooltips:", error);
-    }
-
-    // Funcionalidad de búsqueda
+    console.log("DOM cargado, inicializando filtros...");
+    
+    // Variables para los filtros
     const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function() {
-            const value = this.value.toLowerCase();
-            const rows = document.querySelectorAll('.user-row');
+    const departamentoFilter = document.getElementById('departamentoFilter');
+    const privadoFilter = document.getElementById('privadoFilter');
+    const publicoFilter = document.getElementById('publicoFilter');
+    const resetFiltersBtn = document.getElementById('resetFilters');
+    const rows = document.querySelectorAll('.user-row');
+    
+    // Verificar que los elementos existen
+    console.log("Elementos de filtro encontrados:", {
+        searchInput: !!searchInput,
+        departamentoFilter: !!departamentoFilter,
+        privadoFilter: !!privadoFilter,
+        publicoFilter: !!publicoFilter,
+        resetFiltersBtn: !!resetFiltersBtn,
+        rowsCount: rows.length
+    });
+    
+    // Verificar que los datos están presentes en las filas
+    if (rows.length > 0) {
+        const firstRow = rows[0];
+        console.log("Ejemplo de datos de fila:", {
+            departamentoId: firstRow.getAttribute('data-departamento-id'),
+            privado: firstRow.getAttribute('data-privado'),
+            publico: firstRow.getAttribute('data-publico')
+        });
+    }
+    
+    // Función para aplicar todos los filtros
+    function applyFilters() {
+        console.log("Aplicando filtros...");
+        
+        const searchValue = searchInput ? searchInput.value.toLowerCase() : '';
+        const departamentoValue = departamentoFilter ? departamentoFilter.value : '';
+        const privadoValue = privadoFilter ? privadoFilter.value : '';
+        const publicoValue = publicoFilter ? publicoFilter.value : '';
+        
+        console.log("Filtros actuales:", {
+            search: searchValue,
+            departamento: departamentoValue,
+            privado: privadoValue,
+            publico: publicoValue
+        });
+        
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            const textContent = row.textContent.toLowerCase();
+            const departamentoId = row.getAttribute('data-departamento-id');
+            const privado = row.getAttribute('data-privado');
+            const publico = row.getAttribute('data-publico');
             
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(value) ? '' : 'none';
-            });
+            // Comprobar si la fila cumple con todos los filtros activos
+            const matchesSearch = searchValue === '' || textContent.includes(searchValue);
+            const matchesDepartamento = departamentoValue === '' || departamentoId === departamentoValue;
+            const matchesPrivado = privadoValue === '' || privado === privadoValue;
+            const matchesPublico = publicoValue === '' || publico === publicoValue;
+            
+            const shouldDisplay = matchesSearch && matchesDepartamento && matchesPrivado && matchesPublico;
+            
+            // Para depuración, solo mostrar unas pocas filas
+            if (visibleCount < 3 || !shouldDisplay) {
+                console.log(`Fila ${visibleCount+1}:`, {
+                    departamentoId,
+                    privado,
+                    publico,
+                    matchesSearch,
+                    matchesDepartamento, 
+                    matchesPrivado,
+                    matchesPublico,
+                    shouldDisplay
+                });
+            }
+            
+            // Mostrar u ocultar fila según los filtros
+            row.style.display = shouldDisplay ? '' : 'none';
+            
+            if (shouldDisplay) {
+                visibleCount++;
+            }
         });
+        
+        console.log(`Total de filas visibles: ${visibleCount} de ${rows.length}`);
+        
+        // Actualizar contador de resultados
+        updateResultCount();
     }
     
-    // Panel de detalles de requerimiento
-    const userDetailsPanel = document.getElementById('userDetailsPanel');
-    const viewButtons = document.querySelectorAll('.view-details');
-    const closeDetailsBtn = document.getElementById('closeDetailsBtn');
-    const closePanelBtn = document.getElementById('closePanelBtn');
-    
-    // Mostrar panel de detalles al hacer clic en el ojo
-    if (viewButtons.length > 0 && userDetailsPanel) {
-        viewButtons.forEach(button => {
-            button.addEventListener('click', function(event) {
-                console.log("Botón de ojo clickeado");
-                
-                // Extraer datos del requerimiento
-                const id = this.getAttribute('data-id');
-                const departamentoId = this.getAttribute('data-departamento-id');
-                const nombre = this.getAttribute('data-nombre');
-                const descripcion = this.getAttribute('data-descripcion-req');
-                const precio = this.getAttribute('data-descripcion-precio');
-                const privado = this.getAttribute('data-privado');
-                const publico = this.getAttribute('data-publico');
-                
-                // Llenar datos en el panel
-                document.getElementById('reqId').textContent = id;
-                document.getElementById('reqNombre').textContent = nombre;
-                
-                // Buscar el nombre del departamento
-                const departamentoNombre = obtenerNombreDepartamento(departamentoId);
-                document.getElementById('reqDepartamento').textContent = departamentoNombre;
-                document.getElementById('reqDepartamentoName').textContent = departamentoNombre;
-                
-                document.getElementById('reqDescripcion').textContent = descripcion;
-                document.getElementById('reqPrecio').textContent = precio;
-                document.getElementById('reqPrivado').textContent = privado;
-                document.getElementById('reqPublico').textContent = publico;
-                
-                // Configurar botón de editar
-                document.getElementById('editReqBtn').href = `/requerimientos/${id}/edit`;
-                
-                // Mostrar el panel
-                userDetailsPanel.style.display = 'block';
-                
-                // Desplazar la página hasta el panel
-                userDetailsPanel.scrollIntoView({ behavior: 'smooth' });
-            });
-        });
-    }
-    
-    // Cerrar panel de detalles
-    if (closeDetailsBtn) {
-        closeDetailsBtn.addEventListener('click', function() {
-            userDetailsPanel.style.display = 'none';
-        });
-    }
-    
-    if (closePanelBtn) {
-        closePanelBtn.addEventListener('click', function() {
-            userDetailsPanel.style.display = 'none';
-        });
-    }
-    
-    // Función para obtener el nombre del departamento por su ID
-    function obtenerNombreDepartamento(departamentoId) {
-        // Esta función debería buscar en la lista de departamentos del servidor
-        // Como simplificación, vamos a buscar en los elementos de la tabla
-        const departamentoCell = document.querySelector(`tr[data-departamento-id="${departamentoId}"] td:nth-child(2)`);
-        if (departamentoCell) {
-            return departamentoCell.textContent.trim();
+    // Función para actualizar el contador de resultados visibles
+    function updateResultCount() {
+        // Contar filas que no están ocultas
+        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none').length;
+        const paginationInfo = document.querySelector('.pagination-info');
+        
+        if (paginationInfo) {
+            paginationInfo.innerHTML = `Mostrando <span class="fw-bold">${visibleRows}</span> de <span class="fw-bold">${rows.length}</span> requerimientos`;
         }
-        return `Departamento ${departamentoId}`;
     }
+    
+    // Función para restablecer todos los filtros
+    function resetFilters() {
+        console.log("Restableciendo filtros...");
+        
+        if (searchInput) searchInput.value = '';
+        if (departamentoFilter) departamentoFilter.value = '';
+        if (privadoFilter) privadoFilter.value = '';
+        if (publicoFilter) publicoFilter.value = '';
+        
+        rows.forEach(row => {
+            row.style.display = '';
+        });
+        
+        updateResultCount();
+    }
+    
+    // Vincular eventos
+    if (searchInput) {
+        console.log("Vinculando evento 'input' al campo de búsqueda");
+        searchInput.addEventListener('input', function() {
+            console.log("Evento input detectado en búsqueda:", this.value);
+            applyFilters();
+        });
+    }
+    
+    if (departamentoFilter) {
+        console.log("Vinculando evento 'change' al filtro de departamento");
+        departamentoFilter.addEventListener('change', function() {
+            console.log("Evento change detectado en departamento:", this.value);
+            applyFilters();
+        });
+    }
+    
+    if (privadoFilter) {
+        console.log("Vinculando evento 'change' al filtro de privado");
+        privadoFilter.addEventListener('change', function() {
+            console.log("Evento change detectado en privado:", this.value);
+            applyFilters();
+        });
+    }
+    
+    if (publicoFilter) {
+        console.log("Vinculando evento 'change' al filtro de público");
+        publicoFilter.addEventListener('change', function() {
+            console.log("Evento change detectado en público:", this.value);
+            applyFilters();
+        });
+    }
+    
+    if (resetFiltersBtn) {
+        console.log("Vinculando evento 'click' al botón de reset");
+        resetFiltersBtn.addEventListener('click', resetFilters);
+    }
+    
+    // Inicializar el contador
+    updateResultCount();
+    
+    console.log("Inicialización de filtros completada");
 });
-
-// Función para confirmar eliminación
-function confirmarEliminacion(id, nombre) {
-    if (confirm(`¿Estás seguro de que deseas eliminar el requerimiento "${nombre}"?`)) {
-        document.getElementById(`delete-form-${id}`).submit();
-    }
-}
 </script>
 @endsection

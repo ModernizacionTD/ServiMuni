@@ -35,7 +35,7 @@ class BusquedaController extends Controller
             $rut = str_replace('.', '', $rut); // Quitar puntos
             
             // Buscar usuario
-            $usuario = $this->usuarioService->getByRut($rut);
+            $usuario = $this->usuarioService->getUsuarioByRut($rut);
             
             if ($usuario) {
                 // Si existe el usuario, obtener sus solicitudes
@@ -43,7 +43,7 @@ class BusquedaController extends Controller
                 
                 // Obtener información de requerimientos para mostrar nombres
                 $requerimientos = [];
-                $todosRequerimientos = $this->requerimientoService->getAll();
+                $todosRequerimientos = $this->requerimientoService->getAllRequerimientos();
                 
                 foreach ($todosRequerimientos as $requerimiento) {
                     $requerimientos[$requerimiento['id_requerimiento']] = $requerimiento;
@@ -74,7 +74,7 @@ class BusquedaController extends Controller
         ]);
         
         // Obtener usuario actual
-        $usuario = $this->usuarioService->getByRut($rut);
+        $usuario = $this->usuarioService->getUsuarioByRut($rut);
         
         if (!$usuario) {
             return back()->with('error', 'Usuario no encontrado.');

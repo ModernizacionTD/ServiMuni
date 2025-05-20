@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Services\FuncionarioService;
+use App\Services\DepartamentoService;
 use Illuminate\Http\Request;
 
 class FuncionarioController extends Controller
@@ -32,7 +33,7 @@ class FuncionarioController extends Controller
         }
         
         try {
-            $funcionarios = $this->funcionarioService->getAllFuncionario();
+            $funcionarios = $this->funcionarioService->getAllFuncionarios();
             
             return view('funcionarios.index', [
                 'funcionarios' => $funcionarios,
@@ -58,9 +59,14 @@ class FuncionarioController extends Controller
             return redirect()->route('dashboard')
                 ->with('error', 'No tienes permisos para acceder a esta sección.');
         }
+
+        // The correct way to instantiate DepartamentoService
+        $departamentoService = app(\App\Services\DepartamentoService::class);
+        $departamentos = $departamentoService->getAllDepartamentos();
         
         return view('funcionarios.create', [
-            'nombre' => session('user_nombre')
+            'nombre' => session('user_nombre'),
+            'departamentos' => $departamentos
         ]);
     }
 

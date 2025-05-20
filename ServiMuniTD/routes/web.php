@@ -51,14 +51,10 @@ Route::get('/dashboard', function () {
     $solicitudService = app(App\Services\SolicitudService::class);
 
     // Obtener los datos necesarios
+    $funcionarios = $funcionarioService->getAllFuncionarios() ?? [];
     $departamentos = $departamentoService->getAllDepartamentos() ?? [];
     $requerimientos = $requerimientoService->getAllRequerimientos() ?? [];
     $usuarios = $usuarioService->getAllUsuarios() ?? [];
-    
-    
-    // Para funcionarios, como es un ejemplo y no hay una función específica,
-    // podemos usar la misma lista de usuarios
-    $funcionarios = $funcionarioService->getAllFuncionarios() ?? [];
     
     // Ejemplos de actividades recientes (en una app real, esto vendría de una tabla de actividades)
     $actividades = []; // En caso de que quieras implementar actividades reales más adelante

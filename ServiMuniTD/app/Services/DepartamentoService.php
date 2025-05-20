@@ -52,7 +52,7 @@ class DepartamentoService extends BaseService
         }
     }
 
-    public function getDepartamentosById($id)
+    public function getDepartamentoById($id)
     {
         $departamentos = $this->getAllDepartamentos();
         
@@ -65,7 +65,7 @@ class DepartamentoService extends BaseService
         return null;
     }
 
-    public function createDepartamentos($nombre)
+    public function createDepartamento($nombre)
     {
         try {
             \Log::info('Iniciando creación de departamento: ' . $nombre);
@@ -153,7 +153,7 @@ class DepartamentoService extends BaseService
         }
     }
 
-    public function updateDepartamentos($id, $nombre)
+    public function updateDepartamento($id, $nombre)
     {
         try {
             \Log::info('Iniciando actualización de departamento ID: ' . $id . ', Nombre: ' . $nombre);
@@ -214,7 +214,7 @@ class DepartamentoService extends BaseService
         }
     }
 
-    public function deleteDepartamentos($id)
+    public function deleteDepartamento($id)
     {
         try {
             \Log::info('Iniciando eliminación de departamento ID: ' . $id);
@@ -277,7 +277,7 @@ class DepartamentoService extends BaseService
  * @param int $departamentoId
  * @return array
  */
-public function getRequerimientosByDepartamento($departamentoId)
+public function getRequerimientoByDepartamento($departamentoId)
 {
     try {
         \Log::info('Buscando requerimientos para el departamento ID: ' . $departamentoId);
