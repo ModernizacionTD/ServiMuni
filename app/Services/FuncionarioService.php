@@ -14,7 +14,7 @@ class FuncionarioService extends BaseService
     public function getAllFuncionarios()
     {
         try {
-            $range = 'Funcionarios!A:E'; // Rango de datos para funcionarios (id, email, nombre, password, rol)
+            $range = 'Funcionarios!A:F'; // Rango de datos para funcionarios (id, email, nombre, password, rol)
             $response = $this->sheets->spreadsheets_values->get($this->spreadsheetId, $range);
             $values = $response->getValues();
             
@@ -23,7 +23,7 @@ class FuncionarioService extends BaseService
             }
             
             // Asumiendo que la primera fila es encabezados
-            $headers = ['id', 'email', 'nombre', 'password', 'rol']; 
+            $headers = ['id', 'email', 'nombre', 'password', 'rol', 'departamento_id']; 
             
             $result = [];
             foreach ($values as $index => $row) {
@@ -52,19 +52,7 @@ class FuncionarioService extends BaseService
         }
     }
 
-        public function getByEmail($email)
-    {
-        $funcionarios = $this->getAllFuncionarios();
-        
-        foreach ($funcionarios as $item) {
-            if (isset($item['email']) && $item['email'] === $email) {
-                return $item;
-            }
-        }
-        
-        return null;
-    }
-    
+
     /**
      * Obtiene un funcionario por su ID
      *
@@ -104,22 +92,21 @@ class FuncionarioService extends BaseService
      */
     public function getFuncionarioByEmail($email)
     {
-        try {
-            // Obtener todos los funcionarios
-            $funcionarios = $this->getAllFuncionarios();
-            
-            // Buscar el funcionario con el email especificado
-            foreach ($funcionarios as $funcionario) {
-                if (isset($funcionario['email']) && $funcionario['email'] == $email) {
-                    return $funcionario;
-                }
+        \Log::info('Buscando funcionario con email: ' . $email);
+        
+        $funcionarios = $this->getAllFuncionarios();
+        \Log::info('Funcionarios encontrados: ' . count($funcionarios));
+        
+        foreach ($funcionarios as $item) {
+            \Log::info('Comparando con: ' . ($item['email'] ?? 'null'));
+            if (isset($item['email']) && trim(strtolower($item['email'])) === trim(strtolower($email))) {
+                \Log::info('Funcionario encontrado!');
+                return $item;
             }
-            
-            return null;
-        } catch (\Exception $e) {
-            \Log::error('Error al buscar funcionario por email: ' . $e->getMessage());
-            throw new \Exception('Error al buscar el funcionario: ' . $e->getMessage());
         }
+        
+        \Log::info('Funcionario NO encontrado');
+        return null;
     }
     
     /**
@@ -152,7 +139,8 @@ class FuncionarioService extends BaseService
                     $data['email'],
                     $data['nombre'],
                     $data['password'],
-                    $data['rol']
+                    $data['rol'],
+                    $data['departamento_id'] ?? null // Asegurarse de que el departamento_id esté presente
                 ]
             ];
             
@@ -168,7 +156,7 @@ class FuncionarioService extends BaseService
                 $this->createHeadersIfNeeded('Funcionarios!A1:E1', ['id', 'email', 'nombre', 'password', 'rol']);
             }
             
-            $range = "Funcionarios!A$nextRow:E$nextRow";
+            $range = "Funcionarios!A$nextRow:F$nextRow";
             
             $params = [
                 'valueInputOption' => 'RAW'
@@ -228,7 +216,8 @@ class FuncionarioService extends BaseService
                     $data['email'],
                     $data['nombre'],
                     $data['password'],
-                    $data['rol']
+                    $data['rol'],
+                    $data['departamento_id'] ?? null // Asegurarse de que el departamento_id esté presente
                 ]
             ];
             
@@ -236,7 +225,7 @@ class FuncionarioService extends BaseService
                 'values' => $values
             ]);
             
-            $range = "Funcionarios!A$rowIndex:E$rowIndex";
+            $range = "Funcionarios!A$rowIndex:F$rowIndex";
             
             $params = [
                 'valueInputOption' => 'RAW'
@@ -289,14 +278,14 @@ class FuncionarioService extends BaseService
             
             // Preparar solicitud para eliminar la fila (reemplazando con valores vacíos)
             $values = [
-                ['', '', '', '', ''] // 5 celdas vacías para "eliminar" la fila
+                ['', '', '', '', '', ''] // 5 celdas vacías para "eliminar" la fila
             ];
             
             $body = new \Google\Service\Sheets\ValueRange([
                 'values' => $values
             ]);
             
-            $range = "Funcionarios!A$rowIndex:E$rowIndex";
+            $range = "Funcionarios!A$rowIndex:F$rowIndex";
             
             $params = [
                 'valueInputOption' => 'RAW'

@@ -27,7 +27,7 @@ class LoginController extends Controller
             'password' => 'required',
         ]);
 
-        $user = $this->funcionarioService->getByEmail($request->email);
+        $user = $this->funcionarioService->getFuncionarioByEmail($request->email);
 
         if (!$user) {
             return back()->withErrors([
