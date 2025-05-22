@@ -15,6 +15,7 @@ class DepartamentoController extends Controller
         $this->departamentoService = $departamentoService;
     }
 
+
     /**
      * Muestra la lista de departamentos
      */
@@ -25,11 +26,22 @@ class DepartamentoController extends Controller
             return redirect()->route('login');
         }
         
+        // Verificar si el usuario es administrador
+        if (session('user_rol') !== 'admin') {
+            return redirect()->route('dashboard')
+                ->with('error', 'No tienes permisos para acceder a esta sección.');
+        }
+        
         try {
             $departamentos = $this->departamentoService->getAllDepartamentos();
             
+            // Obtener también los requerimientos para el conteo
+            $requerimientoService = app(\App\Services\RequerimientoService::class);
+            $requerimientos = $requerimientoService->getAllRequerimientos();
+            
             return view('departamentos.index', [
                 'departamentos' => $departamentos,
+                'requerimientos' => $requerimientos, // Agregar esta línea
                 'nombre' => session('user_nombre')
             ]);
         } catch (\Exception $e) {

@@ -105,33 +105,166 @@
                 <h1 class="page-title">@yield('page-title', 'Dashboard')</h1>
             </div>
             <div class="header-right">
-                <div class="user-dropdown-app" id="user-dropdown">
-                    <div class="user-info-app">
-                        <div class="user-avatar-app">
-                            {{ substr(session('user_nombre'), 0, 1) }}
-                        </div>
-                        <div class="user-details-app">
-                            <span class="user-name-app">{{ session('user_nombre') }}</span>
-                            <span class="user-role-app">{{ session('user_rol') }}</span>
-                        </div>
-                        <i class="fas fa-chevron-down dropdown-toggle"></i>
-                    </div>
-                    <div class="dropdown-menu" id="dropdown-menu">
-                        <a href="{{ route('funcionarios.profile') }}" class="dropdown-item">
-                            <i class="fas fa-user"></i>
-                            <span>Mi Perfil</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <form method="POST" action="{{ route('logout') }}" id="logout-form">
-                            @csrf
-                            <button type="submit" class="dropdown-item logout">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Cerrar Sesión</span>
-                            </button>
-                        </form>
+    <div class="user-dropdown-app" id="user-dropdown">
+        <div class="user-info-app">
+            <div class="user-avatar-app">
+                @php
+                    $nombre = session('user_nombre', 'Usuario');
+                    $palabras = explode(' ', trim($nombre));
+                    if (count($palabras) === 1) {
+                        $iniciales = strlen($palabras[0]) >= 2 
+                            ? strtoupper(substr($palabras[0], 0, 2))
+                            : strtoupper($palabras[0][0] . $palabras[0][0]);
+                    } else {
+                        $iniciales = strtoupper($palabras[0][0] . $palabras[1][0]);
+                    }
+                @endphp
+                {{ $iniciales }}
+                <div class="status-indicator online"></div>
+            </div>
+            <div class="user-details-app">
+                <span class="user-name-app">{{ session('user_nombre') }}</span>
+                <span class="user-role-app">
+                    <i class="fas fa-circle role-indicator"></i>
+                    {{ ucfirst(session('user_rol')) }}
+                </span>
+            </div>
+            <i class="fas fa-chevron-down dropdown-toggle" id="dropdown-arrow"></i>
+        </div>
+        
+        <div class="dropdown-menu" id="dropdown-menu">
+            <!-- Header del dropdown -->
+            <div class="dropdown-header">
+                <div class="dropdown-avatar">
+                    {{ $iniciales }}
+                </div>
+                <div class="dropdown-user-info">
+                    <div class="dropdown-user-name">{{ session('user_nombre') }}</div>
+                    <div class="dropdown-user-email">{{ session('user_email', 'admin@servimuni.cl') }}</div>
+                    <div class="dropdown-user-role">
+                        <span class="role-badge role-{{ session('user_rol') }}">
+                            @if(session('user_rol') == 'admin')
+                                <i class="fas fa-crown"></i> Administrador
+                            @elseif(session('user_rol') == 'gestor')
+                                <i class="fas fa-user-cog"></i> Gestor
+                            @elseif(session('user_rol') == 'tecnico')
+                                <i class="fas fa-tools"></i> Técnico
+                            @elseif(session('user_rol') == 'orientador')
+                                <i class="fas fa-compass"></i> Orientador
+                            @else
+                                <i class="fas fa-user"></i> {{ ucfirst(session('user_rol')) }}
+                            @endif
+                        </span>
                     </div>
                 </div>
             </div>
+            
+            <!-- Separador -->
+            <div class="dropdown-divider"></div>
+            
+            <!-- Opciones principales -->
+            <div class="dropdown-section">
+                <a href="{{ route('funcionarios.profile') }}" class="dropdown-item">
+                    <div class="dropdown-item-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="dropdown-item-content">
+                        <span class="dropdown-item-title">Mi Perfil</span>
+                        <span class="dropdown-item-subtitle">Ver y editar información personal</span>
+                    </div>
+                    <i class="fas fa-chevron-right dropdown-item-arrow"></i>
+                </a>
+                
+                <a href="{{ route('funcionarios.showChangePassword') }}" class="dropdown-item">
+                    <div class="dropdown-item-icon">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <div class="dropdown-item-content">
+                        <span class="dropdown-item-title">Cambiar Contraseña</span>
+                        <span class="dropdown-item-subtitle">Actualizar credenciales de acceso</span>
+                    </div>
+                    <i class="fas fa-chevron-right dropdown-item-arrow"></i>
+                </a>
+                
+                <div class="dropdown-item theme-toggle" id="theme-toggle">
+                    <div class="dropdown-item-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <div class="dropdown-item-content">
+                        <span class="dropdown-item-title">Tema</span>
+                        <span class="dropdown-item-subtitle">Cambiar apariencia</span>
+                    </div>
+                    <div class="theme-switch">
+                        <input type="checkbox" id="theme-checkbox" class="theme-checkbox">
+                        <label for="theme-checkbox" class="theme-label">
+                            <span class="theme-sun"><i class="fas fa-sun"></i></span>
+                            <span class="theme-moon"><i class="fas fa-moon"></i></span>
+                            <span class="theme-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Separador -->
+            <div class="dropdown-divider"></div>
+            
+            <!-- Configuración -->
+            <div class="dropdown-section">
+                <a href="{{ route('dashboard') }}" class="dropdown-item">
+                    <div class="dropdown-item-icon">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <div class="dropdown-item-content">
+                        <span class="dropdown-item-title">Dashboard</span>
+                        <span class="dropdown-item-subtitle">Volver al panel principal</span>
+                    </div>
+                    <i class="fas fa-chevron-right dropdown-item-arrow"></i>
+                </a>
+                
+                @if(session('user_rol') == 'admin')
+                <a href="{{ route('admin') }}" class="dropdown-item">
+                    <div class="dropdown-item-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div class="dropdown-item-content">
+                        <span class="dropdown-item-title">Configuración</span>
+                        <span class="dropdown-item-subtitle">Panel de administración</span>
+                    </div>
+                    <i class="fas fa-chevron-right dropdown-item-arrow"></i>
+                </a>
+                @endif
+            </div>
+            
+            <!-- Separador -->
+            <div class="dropdown-divider"></div>
+            
+            <!-- Cerrar sesión -->
+            <div class="dropdown-section">
+                <form method="POST" action="{{ route('logout') }}" id="logout-form">
+                    @csrf
+                    <button type="submit" class="dropdown-item logout-item">
+                        <div class="dropdown-item-icon">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <div class="dropdown-item-content">
+                            <span class="dropdown-item-title">Cerrar Sesión</span>
+                            <span class="dropdown-item-subtitle">Salir del sistema</span>
+                        </div>
+                        <i class="fas fa-chevron-right dropdown-item-arrow"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Footer del dropdown -->
+            <div class="dropdown-footer">
+                <div class="version-info">
+                    <span>ServiMuni v2.0</span>
+                    <span class="build-info">Build {{ date('Y.m.d') }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
         </header>
 
         <div class="content-wrapper">

@@ -10,11 +10,16 @@ use Illuminate\Http\Request;
 class FuncionarioController extends Controller
 {
     protected $funcionarioService;
+    protected $departamentoService;
 
-    public function __construct(FuncionarioService $funcionarioService)
-    {
+    public function __construct(
+        FuncionarioService $funcionarioService,
+        DepartamentoService $departamentoService // Añade esta inyección
+    ) {
         $this->funcionarioService = $funcionarioService;
+        $this->departamentoService = $departamentoService; // Inicializa la propiedad
     }
+
 
     /**
      * Muestra la lista de funcionarios
@@ -34,9 +39,23 @@ class FuncionarioController extends Controller
         
         try {
             $funcionarios = $this->funcionarioService->getAllFuncionarios();
+            $departamentos = $this->departamentoService->getAllDepartamentos();
+            
+            // Debug: Ver qué datos estamos recibiendo
+            \Log::info('Funcionarios data: ' . json_encode($funcionarios));
+            \Log::info('Departamentos data: ' . json_encode($departamentos));
+            
+            // Debug específico para verificar el campo departamento
+            if (!empty($funcionarios)) {
+                \Log::info('Primer funcionario estructura: ' . json_encode($funcionarios[0]));
+                foreach ($funcionarios as $index => $funcionario) {
+                    \Log::info("Funcionario {$index} - departamento: " . ($funcionario['departamento'] ?? 'NO EXISTE'));
+                }
+            }
             
             return view('funcionarios.index', [
                 'funcionarios' => $funcionarios,
+                'departamentos' => $departamentos,
                 'nombre' => session('user_nombre')
             ]);
         } catch (\Exception $e) {

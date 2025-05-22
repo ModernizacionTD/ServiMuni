@@ -83,11 +83,13 @@
                             data-requerimientos-count="{{ $requerimientosCount }}">
                             <td><strong>{{ $departamento['id'] }}</strong></td>
                             <td>
-                                <div class="d-flex align-items-center flex-row" style="gap: 8px;">
-                                    <div class="department-icon me-2" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="department-icon">
                                         <i class="fas fa-sitemap"></i>
                                     </div>
-                                    <span class="department-name" style="vertical-align: middle;">{{ $departamento['nombre'] }}</span>
+                                    <div style="flex: 1;">
+                                        <span class="department-name">{{ $departamento['nombre'] }}</span>
+                                    </div>
                                 </div>
                             </td>
                             <td>
@@ -230,20 +232,22 @@
 
 <style>
 .department-icon {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: rgba(56, 103, 214, 0.1);
     border-radius: 6px;
     color: var(--primary-color);
-    margin-bottom: 0; /* Asegura que no haya margen inferior */
+    flex-shrink: 0;
 }
 
 .department-name {
     font-weight: 600;
     color: var(--text-color);
+    font-size: 0.9rem;
+    line-height: 1.3;
 }
 
 .requerimiento-item {

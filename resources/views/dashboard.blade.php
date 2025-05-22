@@ -6,6 +6,7 @@
 
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <!-- Sección de Bienvenida -->
 <div class="welcome-section">
@@ -106,7 +107,18 @@
                     @foreach($funcionarios as $funcionario)
                         @if($displayedAvatars < $maxAvatars)
                             <div class="avatar">
-                                {{ substr($funcionario['nombre'] ?? 'U', 0, 1) }}{{ substr($funcionario['apellidos'] ?? 'S', 0, 1) }}
+                                @php
+                                    $nombre = $funcionario['nombre'] ?? 'U';
+                                    $palabras = explode(' ', trim($nombre));
+                                    if (count($palabras) === 1) {
+                                        $iniciales = strlen($palabras[0]) >= 2 
+                                            ? strtoupper(substr($palabras[0], 0, 2))
+                                            : strtoupper($palabras[0][0] . $palabras[0][0]);
+                                    } else {
+                                        $iniciales = strtoupper($palabras[0][0] . $palabras[1][0]);
+                                    }
+                                @endphp
+                                {{ $iniciales }}
                             </div>
                             @php $displayedAvatars++; @endphp
                         @endif
@@ -154,7 +166,7 @@
                         <i class="fas fa-user-plus"></i>
                     </div>
                     <div class="action-content">
-                        <h6>Agregar Usuario</h6>
+                        <h6>Agregar Funcionario</h6>
                         <p>Nuevo funcionario</p>
                     </div>
                     <i class="fas fa-chevron-right action-arrow"></i>
@@ -167,7 +179,7 @@
                     </div>
                     <div class="action-content">
                         <h6>Nuevo Requerimiento</h6>
-                        <p>Crear solicitud</p>
+                        <p>Crear requerimiento</p>
                     </div>
                     <i class="fas fa-chevron-right action-arrow"></i>
                 </a>
@@ -253,138 +265,250 @@
         </div>
     </div>
 
-    <!-- Gráfico de Estado -->
+    <!-- Gráfico de Requerimientos por Departamento -->
     <div class="card chart-card">
         <div class="card-header">
             <h2 class="card-title">
-                <i class="fas fa-chart-pie"></i>Distribución de Servicios
+                <i class="fas fa-chart-pie"></i>Requerimientos por Departamento
             </h2>
         </div>
         <div class="card-body">
             <div class="chart-container">
                 <canvas id="serviciosChart"></canvas>
             </div>
-            <div class="chart-legend">
-                <div class="legend-item">
-                    <span class="legend-color bg-success"></span>
-                    <span>Requerimientos Digitales (45%)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color bg-warning"></span>
-                    <span>Servicios Sociales (30%)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color bg-info"></span>
-                    <span>Obras Públicas (15%)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color bg-secondary"></span>
-                    <span>Otros (10%)</span>
-                </div>
+            <div class="chart-legend" id="chartLegend">
+                <!-- La leyenda se generará dinámicamente -->
             </div>
         </div>
     </div>
 </div>
 
+@php
+// Procesar datos para el gráfico
+$departamentosData = [];
+$totalRequerimientos = 0;
+
+// Contar requerimientos por departamento
+foreach($departamentos as $departamento) {
+    $requerimientosCount = 0;
+    foreach($requerimientos as $requerimiento) {
+        if(isset($requerimiento['departamento_id']) && $requerimiento['departamento_id'] == $departamento['id']) {
+            $requerimientosCount++;
+        }
+    }
+    
+    if($requerimientosCount > 0) {
+        $departamentosData[] = [
+            'nombre' => $departamento['nombre'],
+            'count' => $requerimientosCount,
+            'id' => $departamento['id']
+        ];
+        $totalRequerimientos += $requerimientosCount;
+    }
+}
+
+// Si no hay requerimientos, mostrar mensaje
+if(empty($departamentosData)) {
+    $departamentosData[] = [
+        'nombre' => 'Sin requerimientos',
+        'count' => 1,
+        'id' => 0
+    ];
+    $totalRequerimientos = 1;
+}
+
+// Ordenar por cantidad (mayor a menor)
+usort($departamentosData, function($a, $b) {
+    return $b['count'] - $a['count'];
+});
+
+// Limitar a los top 6 departamentos para mejor visualización
+$departamentosData = array_slice($departamentosData, 0, 6);
+
+// Calcular porcentajes
+foreach($departamentosData as &$dept) {
+    $dept['porcentaje'] = round(($dept['count'] / $totalRequerimientos) * 100, 1);
+}
+@endphp
+
 <!-- JavaScript para los gráficos -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar si Chart.js está disponible
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js no está cargado');
+        return;
+    }
+    
+    // Datos de departamentos desde PHP
+    const departamentosData = @json($departamentosData);
+    const totalRequerimientos = {{ $totalRequerimientos }};
+    
+    console.log('Datos de departamentos:', departamentosData);
+    console.log('Total requerimientos:', totalRequerimientos);
+    
+    // Colores para el gráfico
+    const colores = [
+        '#3b82f6', // Azul
+        '#10b981', // Verde
+        '#f59e0b', // Amarillo
+        '#ef4444', // Rojo
+        '#8b5cf6', // Púrpura
+        '#06b6d4', // Cian
+        '#6b7280'  // Gris
+    ];
+    
     // Mini gráfico para departamentos
-    const departamentosCtx = document.getElementById('departamentosChart').getContext('2d');
-    new Chart(departamentosCtx, {
-        type: 'line',
-        data: {
-            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May'],
-            datasets: [{
-                data: [10, 15, 18, 22, {{ count($departamentos) }}],
-                borderColor: '#2563eb',
-                borderWidth: 2,
-                fill: false,
-                tension: 0.4,
-                pointRadius: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    const departamentosChartElement = document.getElementById('departamentosChart');
+    if (departamentosChartElement) {
+        const departamentosCtx = departamentosChartElement.getContext('2d');
+        new Chart(departamentosCtx, {
+            type: 'line',
+            data: {
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May'],
+                datasets: [{
+                    data: [10, 15, 18, 22, {{ count($departamentos) }}],
+                    borderColor: '#2563eb',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
             },
-            scales: {
-                x: {
-                    display: false
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
                 },
-                y: {
-                    display: false
+                scales: {
+                    x: {
+                        display: false
+                    },
+                    y: {
+                        display: false
+                    }
                 }
             }
-        }
-    });
+        });
+    }
     
     // Mini gráfico para requerimientos
-    const requerimientosCtx = document.getElementById('requerimientosChart').getContext('2d');
-    new Chart(requerimientosCtx, {
-        type: 'line',
-        data: {
-            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May'],
-            datasets: [{
-                data: [15, 25, 20, 30, {{ count($requerimientos) }}],
-                borderColor: '#ffc107',
-                borderWidth: 2,
-                fill: false,
-                tension: 0.4,
-                pointRadius: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    const requerimientosChartElement = document.getElementById('requerimientosChart');
+    if (requerimientosChartElement) {
+        const requerimientosCtx = requerimientosChartElement.getContext('2d');
+        new Chart(requerimientosCtx, {
+            type: 'line',
+            data: {
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May'],
+                datasets: [{
+                    data: [15, 25, 20, 30, {{ count($requerimientos) }}],
+                    borderColor: '#ffc107',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
             },
-            scales: {
-                x: {
-                    display: false
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
                 },
-                y: {
-                    display: false
+                scales: {
+                    x: {
+                        display: false
+                    },
+                    y: {
+                        display: false
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 
-    // Gráfico de distribución de servicios
-    const serviciosCtx = document.getElementById('serviciosChart').getContext('2d');
-    new Chart(serviciosCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Requerimientos Digitales', 'Servicios Sociales', 'Obras Públicas', 'Otros'],
-            datasets: [{
-                data: [45, 30, 15, 10],
-                backgroundColor: [
-                    '#28a745',
-                    '#ffc107',
-                    '#17a2b8',
-                    '#6c757d'
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    // Gráfico de requerimientos por departamento
+    const serviciosChartElement = document.getElementById('serviciosChart');
+    if (serviciosChartElement) {
+        const serviciosCtx = serviciosChartElement.getContext('2d');
+        
+        // Preparar datos para el gráfico
+        const labels = departamentosData.map(dept => dept.nombre);
+        const data = departamentosData.map(dept => dept.count);
+        const backgroundColors = departamentosData.map((dept, index) => colores[index % colores.length]);
+        
+        console.log('Labels:', labels);
+        console.log('Data:', data);
+        console.log('Background colors:', backgroundColors);
+        
+        new Chart(serviciosCtx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
             },
-            cutout: '70%'
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const dept = departamentosData[context.dataIndex];
+                                return `${dept.nombre}: ${dept.count} requerimientos (${dept.porcentaje}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+        
+        console.log('Gráfico de servicios creado exitosamente');
+    } else {
+        console.error('Elemento serviciosChart no encontrado');
+    }
+    
+    // Generar leyenda personalizada
+    const legendContainer = document.getElementById('chartLegend');
+    if (legendContainer) {
+        legendContainer.innerHTML = '';
+        
+        if (departamentosData.length > 0 && departamentosData[0].nombre !== 'Sin requerimientos') {
+            departamentosData.forEach((dept, index) => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                legendItem.innerHTML = `
+                    <span class="legend-color" style="background-color: ${colores[index % colores.length]}"></span>
+                    <span>${dept.nombre} (${dept.count} - ${dept.porcentaje}%)</span>
+                `;
+                legendContainer.appendChild(legendItem);
+            });
+        } else {
+            const noDataItem = document.createElement('div');
+            noDataItem.className = 'legend-item';
+            noDataItem.innerHTML = `
+                <span class="legend-color" style="background-color: #6b7280"></span>
+                <span>No hay requerimientos registrados</span>
+            `;
+            legendContainer.appendChild(noDataItem);
         }
-    });
+    } else {
+        console.error('Elemento chartLegend no encontrado');
+    }
 });
 </script>
 @endsection
