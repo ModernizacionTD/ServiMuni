@@ -12,7 +12,7 @@
 <div class="welcome-section">
     <div class="welcome-content">
         <h2 class="welcome-title">
-            Bienvenido a ServiMuni, {{ session('user_nombre') }}! 👋
+            Bienvenido a ServiMuni, {{ $nombre }}! 👋
         </h2>
         <p class="welcome-subtitle">
             Sistema de toma de requerimientos y gestión de requerimientos digitales.
@@ -24,9 +24,8 @@
     </div>
 </div>
 
-<!-- Estadísticas -->
+<!-- Estadísticas Principales -->
 <div class="stats-grid">
-
     <!-- Departamentos Card -->
     <div class="stat-card stat-primary">
         <div class="stat-body">
@@ -49,6 +48,7 @@
             </a>
         </div>
     </div>
+
     <!-- Requerimientos Card -->
     <div class="stat-card stat-warning">
         <div class="stat-body">
@@ -69,6 +69,7 @@
             </a>
         </div>
     </div>
+
     <!-- Usuarios Card -->
     <div class="stat-card stat-success">
         <div class="stat-body">
@@ -89,6 +90,7 @@
             </a>
         </div>
     </div>
+
     <!-- Funcionarios Card -->
     <div class="stat-card stat-info">
         <div class="stat-body">
@@ -149,7 +151,7 @@
         </div>
         <div class="card-body">
             <div class="quick-actions">
-                @if(session('user_rol') == 'admin')
+                @if($rol == 'admin')
                 <a href="{{ route('departamentos.create') }}" class="action-item">
                     <div class="action-icon bg-primary">
                         <i class="fas fa-sitemap"></i>
@@ -166,8 +168,8 @@
                         <i class="fas fa-user-plus"></i>
                     </div>
                     <div class="action-content">
-                        <h6>Agregar Funcionario</h6>
-                        <p>Nuevo funcionario</p>
+                        <h6>Agregar Usuario</h6>
+                        <p>Nuevo usuario</p>
                     </div>
                     <i class="fas fa-chevron-right action-arrow"></i>
                 </a>
@@ -184,13 +186,13 @@
                     <i class="fas fa-chevron-right action-arrow"></i>
                 </a>
 
-                <a href="{{ route('requerimientos.index') }}" class="action-item">
+                <a href="{{ route('buscar.usuario') }}" class="action-item">
                     <div class="action-icon bg-info">
-                        <i class="fas fa-list"></i>
+                        <i class="fas fa-search"></i>
                     </div>
                     <div class="action-content">
-                        <h6>Ver Requerimientos</h6>
-                        <p>Lista completa</p>
+                        <h6>Buscar Usuario</h6>
+                        <p>Crear solicitud</p>
                     </div>
                     <i class="fas fa-chevron-right action-arrow"></i>
                 </a>
@@ -198,69 +200,139 @@
         </div>
     </div>
 
-    <!-- Actividad Reciente -->
-    <div class="card activity-card">
+    <!-- SECCIÓN DE RENDIMIENTO MENSUAL -->
+    <div class="card performance-card">
         <div class="card-header">
             <h2 class="card-title">
-                <i class="fas fa-history"></i>Actividad Reciente
+                <i class="fas fa-chart-line"></i>Rendimiento Mensual
             </h2>
-            <span class="badge bg-primary">Hoy</span>
+            <div class="performance-badges">
+                <span class="badge bg-info">{{ $mesActual }}</span>
+                @if($solicitudesVencidas > 0)
+                <span class="badge bg-danger">{{ $solicitudesVencidas }} vencidas</span>
+                @endif
+            </div>
         </div>
         <div class="card-body">
-            <div class="activity-timeline">
-                @if(count($actividades) > 0)
-                    @foreach($actividades as $actividad)
-                    <div class="activity-item">
-                        <div class="activity-dot {{ $actividad['color'] ?? 'bg-info' }}"></div>
-                        <div class="activity-content">
-                            <p class="activity-text">
-                                {!! $actividad['texto'] !!}
-                            </p>
-                            <small class="text-muted">{{ $actividad['tiempo'] }}</small>
+            <!-- Métricas principales -->
+            <div class="performance-metrics">
+                <div class="metric-item">
+                    <div class="metric-icon bg-success">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="metric-data">
+                        <div class="metric-number">{{ $solicitudesCompletadas }}</div>
+                        <div class="metric-label">Completadas</div>
+                        <div class="metric-change positive">
+                            <i class="fas fa-arrow-up"></i> +{{ round(($solicitudesCompletadas / max($totalSolicitudesMes, 1)) * 100) }}%
                         </div>
                     </div>
-                    @endforeach
-                @else
-                    <div class="activity-item">
-                        <div class="activity-dot bg-info"></div>
-                        <div class="activity-content">
-                            <p class="activity-text">
-                                <strong>Departamento de Finanzas</strong> actualizado
-                            </p>
-                            <small class="text-muted">Hace 2 horas</small>
+                </div>
+                
+                <div class="metric-item">
+                    <div class="metric-icon bg-warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="metric-data">
+                        <div class="metric-number">{{ $solicitudesEnProceso }}</div>
+                        <div class="metric-label">En Proceso</div>
+                        <div class="metric-change neutral">
+                            <i class="fas fa-minus"></i> {{ round(($solicitudesEnProceso / max($totalSolicitudesMes, 1)) * 100) }}%
                         </div>
                     </div>
-
-                    <div class="activity-item">
-                        <div class="activity-dot bg-warning"></div>
-                        <div class="activity-content">
-                            <p class="activity-text">
-                                Nuevo usuario <strong>Carlos Navarro</strong> agregado
-                            </p>
-                            <small class="text-muted">Hace 4 horas</small>
+                </div>
+                
+                <div class="metric-item">
+                    <div class="metric-icon bg-primary">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="metric-data">
+                        <div class="metric-number">{{ $solicitudesNuevas }}</div>
+                        <div class="metric-label">Nuevas</div>
+                        <div class="metric-change positive">
+                            <i class="fas fa-arrow-up"></i> {{ $solicitudesHoy }} hoy
                         </div>
                     </div>
-
-                    <div class="activity-item">
-                        <div class="activity-dot bg-success"></div>
-                        <div class="activity-content">
-                            <p class="activity-text">
-                                <strong>Portal Ciudadano</strong> finalizado
-                            </p>
-                            <small class="text-muted">Ayer</small>
+                </div>
+            </div>
+            
+            <!-- Gráfico de rendimiento -->
+            <div class="performance-chart">
+                <canvas id="performanceChart"></canvas>
+            </div>
+            
+            <!-- Resumen de rendimiento -->
+            <div class="performance-summary">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="summary-content">
+                            <span class="summary-label">Tiempo Promedio</span>
+                            <span class="summary-value">{{ $tiempoPromedio }} días</span>
                         </div>
                     </div>
-
-                    <div class="activity-item">
-                        <div class="activity-dot bg-danger"></div>
-                        <div class="activity-content">
-                            <p class="activity-text">
-                                <strong>Mantenimiento de sistema</strong> programado
-                            </p>
-                            <small class="text-muted">Hace 2 días</small>
+                    
+                    <div class="summary-item">
+                        <div class="summary-icon">
+                            <i class="fas fa-target"></i>
+                        </div>
+                        <div class="summary-content">
+                            <span class="summary-label">Eficiencia</span>
+                            <span class="summary-value {{ $eficiencia >= 80 ? 'text-success' : ($eficiencia >= 60 ? 'text-warning' : 'text-danger') }}">{{ $eficiencia }}%</span>
                         </div>
                     </div>
+                    
+                    <div class="summary-item">
+                        <div class="summary-icon">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="summary-content">
+                            <span class="summary-label">Total del Mes</span>
+                            <span class="summary-value">{{ $totalSolicitudesMes }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <div class="summary-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="summary-content">
+                            <span class="summary-label">Promedio Semanal</span>
+                            <span class="summary-value">{{ $promedioSemanal }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alertas de rendimiento -->
+            @if($solicitudesVencidas > 0 || $eficiencia < 60)
+            <div class="performance-alerts">
+                @if($solicitudesVencidas > 0)
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Atención:</strong> Hay {{ $solicitudesVencidas }} solicitudes vencidas que requieren seguimiento.
+                </div>
                 @endif
+                
+                @if($eficiencia < 60)
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Mejora:</strong> La eficiencia está por debajo del 60%. Considera revisar los procesos.
+                </div>
+                @endif
+            </div>
+            @endif
+            
+            <!-- Botón para ver más detalles -->
+            <div class="performance-footer">
+                <a href="{{ route('solicitudes.index') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-chart-bar"></i> Ver Reporte Completo
+                </a>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="refreshMetrics()">
+                    <i class="fas fa-sync-alt"></i> Actualizar
+                </button>
             </div>
         </div>
     </div>
@@ -283,53 +355,203 @@
     </div>
 </div>
 
-@php
-// Procesar datos para el gráfico
-$departamentosData = [];
-$totalRequerimientos = 0;
+<!-- CSS adicional para la sección de rendimiento -->
+<style>
+/* ===== ESTILOS PARA RENDIMIENTO ===== */
+.performance-card {
+    grid-column: span 1;
+}
 
-// Contar requerimientos por departamento
-foreach($departamentos as $departamento) {
-    $requerimientosCount = 0;
-    foreach($requerimientos as $requerimiento) {
-        if(isset($requerimiento['departamento_id']) && $requerimiento['departamento_id'] == $departamento['id']) {
-            $requerimientosCount++;
-        }
+.performance-badges {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.performance-metrics {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 25px;
+    gap: 12px;
+}
+
+.metric-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-light);
+    padding: 16px;
+    border-radius: 12px;
+    gap: 12px;
+    flex: 1;
+    transition: all 0.3s ease;
+}
+
+.metric-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.metric-data {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.metric-number {
+    font-weight: 700;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--text-color);
+}
+
+.metric-label {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.metric-change {
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.metric-change.positive {
+    color: var(--success-color);
+}
+
+.metric-change.negative {
+    color: var(--danger-color);
+}
+
+.metric-change.neutral {
+    color: var(--text-muted);
+}
+
+.performance-chart {
+    margin: 25px 0;
+    height: 120px;
+    position: relative;
+    background-color: var(--bg-light);
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.performance-summary {
+    margin-top: 20px;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.summary-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.summary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.summary-label {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.summary-value {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.performance-alerts {
+    margin: 15px 0;
+}
+
+.performance-alerts .alert {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+}
+
+.performance-footer {
+    margin-top: 20px;
+    text-align: center;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+/* Responsive para métricas */
+@media (max-width: 768px) {
+    .performance-metrics {
+        flex-direction: column;
+        gap: 8px;
     }
     
-    if($requerimientosCount > 0) {
-        $departamentosData[] = [
-            'nombre' => $departamento['nombre'],
-            'count' => $requerimientosCount,
-            'id' => $departamento['id']
-        ];
-        $totalRequerimientos += $requerimientosCount;
+    .metric-item {
+        padding: 12px;
+    }
+    
+    .metric-number {
+        font-size: 1.3rem;
+    }
+    
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .performance-footer {
+        flex-direction: column;
+        gap: 8px;
     }
 }
 
-// Si no hay requerimientos, mostrar mensaje
-if(empty($departamentosData)) {
-    $departamentosData[] = [
-        'nombre' => 'Sin requerimientos',
-        'count' => 1,
-        'id' => 0
-    ];
-    $totalRequerimientos = 1;
+@media (max-width: 480px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
 }
-
-// Ordenar por cantidad (mayor a menor)
-usort($departamentosData, function($a, $b) {
-    return $b['count'] - $a['count'];
-});
-
-// Limitar a los top 6 departamentos para mejor visualización
-$departamentosData = array_slice($departamentosData, 0, 6);
-
-// Calcular porcentajes
-foreach($departamentosData as &$dept) {
-    $dept['porcentaje'] = round(($dept['count'] / $totalRequerimientos) * 100, 1);
-}
-@endphp
+</style>
 
 <!-- JavaScript para los gráficos -->
 <script>
@@ -340,22 +562,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Datos de departamentos desde PHP
-    const departamentosData = @json($departamentosData);
-    const totalRequerimientos = {{ $totalRequerimientos }};
+    // Datos desde PHP
+    const departamentosData = @json($departamentosData ?? []);
+    const totalRequerimientos = {{ $totalRequerimientos ?? 1 }};
+    const datosRendimiento = @json($datosGraficoRendimiento ?? []);
     
-    console.log('Datos de departamentos:', departamentosData);
-    console.log('Total requerimientos:', totalRequerimientos);
-    
-    // Colores para el gráfico
+    // Colores para los gráficos
     const colores = [
-        '#3b82f6', // Azul
-        '#10b981', // Verde
-        '#f59e0b', // Amarillo
-        '#ef4444', // Rojo
-        '#8b5cf6', // Púrpura
-        '#06b6d4', // Cian
-        '#6b7280'  // Gris
+        '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#6b7280'
     ];
     
     // Mini gráfico para departamentos
@@ -378,19 +592,8 @@ document.addEventListener('DOMContentLoaded', function() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    x: {
-                        display: false
-                    },
-                    y: {
-                        display: false
-                    }
-                }
+                plugins: { legend: { display: false } },
+                scales: { x: { display: false }, y: { display: false } }
             }
         });
     }
@@ -415,36 +618,102 @@ document.addEventListener('DOMContentLoaded', function() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { display: false }, y: { display: false } }
+            }
+        });
+    }
+
+    // Gráfico de rendimiento (principal)
+    const performanceChartElement = document.getElementById('performanceChart');
+    if (performanceChartElement && datosRendimiento.length > 0) {
+        const performanceCtx = performanceChartElement.getContext('2d');
+        
+        new Chart(performanceCtx, {
+            type: 'line',
+            data: {
+                labels: datosRendimiento.map(d => d.fecha),
+                datasets: [
+                    {
+                        label: 'Nuevas',
+                        data: datosRendimiento.map(d => d.nuevas),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Completadas',
+                        data: datosRendimiento.map(d => d.completadas),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: false
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#3b82f6',
+                        borderWidth: 1
                     }
                 },
                 scales: {
                     x: {
-                        display: false
+                        display: true,
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } }
                     },
                     y: {
-                        display: false
+                        display: true,
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                        ticks: { font: { size: 11 } }
                     }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
                 }
             }
         });
     }
 
-    // Gráfico de requerimientos por departamento
+    // Gráfico de departamentos (tipo donut)
     const serviciosChartElement = document.getElementById('serviciosChart');
     if (serviciosChartElement) {
         const serviciosCtx = serviciosChartElement.getContext('2d');
         
-        // Preparar datos para el gráfico
         const labels = departamentosData.map(dept => dept.nombre);
         const data = departamentosData.map(dept => dept.count);
         const backgroundColors = departamentosData.map((dept, index) => colores[index % colores.length]);
-        
-        console.log('Labels:', labels);
-        console.log('Data:', data);
-        console.log('Background colors:', backgroundColors);
         
         new Chart(serviciosCtx, {
             type: 'doughnut',
@@ -461,9 +730,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -476,13 +743,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 cutout: '65%'
             }
         });
-        
-        console.log('Gráfico de servicios creado exitosamente');
-    } else {
-        console.error('Elemento serviciosChart no encontrado');
     }
     
-    // Generar leyenda personalizada
+    // Generar leyenda personalizada para el gráfico de departamentos
     const legendContainer = document.getElementById('chartLegend');
     if (legendContainer) {
         legendContainer.innerHTML = '';
@@ -506,9 +769,39 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             legendContainer.appendChild(noDataItem);
         }
-    } else {
-        console.error('Elemento chartLegend no encontrado');
     }
 });
+
+// Función para refrescar métricas
+function refreshMetrics() {
+    const button = event.target.closest('button');
+    const icon = button.querySelector('i');
+    
+    // Animación de carga
+    icon.classList.add('fa-spin');
+    button.disabled = true;
+    
+    // Simular llamada AJAX (reemplaza con llamada real a la API)
+    fetch('{{ route("dashboard.metrics") }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Aquí podrías actualizar los números sin recargar la página
+                console.log('Métricas actualizadas:', data);
+                // Ejemplo: actualizar un elemento específico
+                // document.querySelector('.metric-number').textContent = data.solicitudesCompletadas;
+            }
+        })
+        .catch(error => {
+            console.error('Error al actualizar métricas:', error);
+        })
+        .finally(() => {
+            // Restaurar botón
+            setTimeout(() => {
+                icon.classList.remove('fa-spin');
+                button.disabled = false;
+            }, 1000);
+        });
+}
 </script>
 @endsection

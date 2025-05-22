@@ -7,6 +7,7 @@ use App\Http\Controllers\RequerimientoController;
 use App\Http\Controllers\FuncionarioController;
 use App\Http\Controllers\SolicitudController;
 use App\Http\Controllers\BusquedaController;
+use App\Http\Controllers\DashboardController; // NUEVO: Importar DashboardController
 use Illuminate\Support\Facades\Route;
 
 // Rutas de autenticación
@@ -37,38 +38,12 @@ Route::prefix('solicitudes')->group(function () {
     Route::delete('/{id}', [SolicitudController::class, 'destroy'])->name('solicitudes.destroy');
 });
 
-// Dashboard - protegido para usuarios autenticados
-Route::get('/dashboard', function () {
-    // Verificar si el usuario está autenticado
-    if (!session('user_id')) {
-        return redirect()->route('login');
-    }
-    
-    $funcionarioService = app(App\Services\FuncionarioService::class);
-    $departamentoService = app(App\Services\DepartamentoService::class);
-    $requerimientoService = app(App\Services\RequerimientoService::class);
-    $usuarioService = app(App\Services\UsuarioService::class);
-    $solicitudService = app(App\Services\SolicitudService::class);
+// NUEVO: Dashboard usando DashboardController
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Obtener los datos necesarios
-    $funcionarios = $funcionarioService->getAllFuncionarios() ?? [];
-    $departamentos = $departamentoService->getAllDepartamentos() ?? [];
-    $requerimientos = $requerimientoService->getAllRequerimientos() ?? [];
-    $usuarios = $usuarioService->getAllUsuarios() ?? [];
-    
-    // Ejemplos de actividades recientes (en una app real, esto vendría de una tabla de actividades)
-    $actividades = []; // En caso de que quieras implementar actividades reales más adelante
-    
-    return view('dashboard', [
-        'nombre' => session('user_nombre'),
-        'rol' => session('user_rol'),
-        'departamentos' => $departamentos,
-        'requerimientos' => $requerimientos, 
-        'usuarios' => $usuarios,
-        'funcionarios' => $funcionarios,
-        'actividades' => $actividades
-    ]);
-})->name('dashboard');
+// NUEVO: APIs opcionales para métricas en tiempo real
+Route::get('/api/dashboard/metrics', [DashboardController::class, 'getMetrics'])->name('dashboard.metrics');
+Route::get('/api/dashboard/chart-data', [DashboardController::class, 'getChartData'])->name('dashboard.chart');
 
 // Página de administración - solo para administradores
 Route::get('/admin', function () {
@@ -127,7 +102,6 @@ Route::prefix('funcionarios')->group(function () {
     Route::delete('/{id}', [FuncionarioController::class, 'destroy'])->name('funcionarios.destroy');
     
     // Rutas adicionales
-// Rutas adicionales
     Route::get('/profile', [FuncionarioController::class, 'showProfile'])->name('profile');
     Route::get('/funcionarios/profile', [FuncionarioController::class, 'showProfile'])->name('funcionarios.profile');
     Route::get('/change-password', [FuncionarioController::class, 'showChangePassword'])->name('funcionarios.showChangePassword');
