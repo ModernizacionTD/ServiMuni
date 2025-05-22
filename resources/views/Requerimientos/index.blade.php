@@ -6,18 +6,29 @@
 
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/tabla.css') }}">
-<link rel="stylesheet" href="{{ asset('css/requerimientos.css') }}">
+<link rel="stylesheet" href="{{ asset('css/filtros.css') }}">
 
 
 <div class="card">
-    <div class="card-header">
-        <div class="header-filters">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" class="form-control" placeholder="Buscar requerimiento...">
+        <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">Lista de Requerimientos</h3>
+        <a href="{{ route('requerimientos.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nuevo Requerimiento
+        </a>
+    </div>
+        <!-- Barra de filtros horizontal -->
+    <div class="filters-bar">
+        <div class="filters-container">
+            <!-- Búsqueda -->
+            <div class="filter-item search-filter">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Buscar usuario...">
+                </div>
             </div>
             
-            <div class="filter-container">
+            <!-- Filtro por departamento -->
+            <div class="filter-item">
                 <select id="departamentoFilter" class="form-select">
                     <option value="">Todos los departamentos</option>
                     @foreach($departamentos as $departamento)
@@ -26,15 +37,17 @@
                 </select>
             </div>
             
-            <div class="filter-container">
+            <!-- Filtro por tipo ubicación privado -->
+            <div class="filter-item">
                 <select id="privadoFilter" class="form-select">
                     <option value="">Filtrar por privado</option>
                     <option value="1">Sí</option>
                     <option value="0">No</option>
                 </select>
             </div>
-            
-            <div class="filter-container">
+
+            <!-- Filtro por tipo ubicación pública -->
+            <div class="filter-item">
                 <select id="publicoFilter" class="form-select">
                     <option value="">Filtrar por público</option>
                     <option value="1">Sí</option>
@@ -42,16 +55,15 @@
                 </select>
             </div>
             
-            <button id="resetFilters" class="btn btn-outline-secondary">
-                <i class="fas fa-sync-alt"></i> Restablecer filtros
-            </button>
-
-                    <div class="header-actions">
-            <a href="{{ route('requerimientos.create') }}" class="btn btn-primary btn-nuevo">
-                <i class="fas fa-plus"></i> Nuevo Requerimiento
-            </a>
+            <!-- Botón reset -->
+            <div class="filter-item">
+                <button type="button" class="btn btn-outline-secondary" id="clearFiltersBtn">
+                    <i class="fas fa-sync-alt"></i> Restablecer filtros
+                </button>
+            </div>
         </div>
-        </div>
+        <!-- Chips de filtros activos -->
+        <div class="active-filters-chips" id="activeFiltersContainer"></div>
     </div>
     
     <div class="card-body">
@@ -108,10 +120,6 @@
                             </td>
                             <td>
                                 <div class="action-buttons">
-                                    <a href="{{ route('requerimientos.edit', $requerimiento['id_requerimiento']) }}" class="btn btn-sm btn-primary" title="Editar requerimiento">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    
                                     <button type="button" class="btn btn-sm btn-info view-details" title="Ver detalles" 
                                         data-id="{{ $requerimiento['id_requerimiento'] }}"
                                         data-departamento-id="{{ $requerimiento['departamento_id'] }}"
@@ -122,7 +130,11 @@
                                         data-publico="{{ $requerimiento['publico'] ? 'Sí' : 'No' }}">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    
+
+                                    <a href="{{ route('requerimientos.edit', $requerimiento['id_requerimiento']) }}" class="btn btn-sm btn-primary" title="Editar requerimiento">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+
                                     <button type="button" class="btn btn-sm btn-danger" title="Eliminar" 
                                         onclick="confirmarEliminacion('{{ $requerimiento['id_requerimiento'] }}', '{{ $requerimiento['nombre'] }}')">
                                         <i class="fas fa-trash"></i>

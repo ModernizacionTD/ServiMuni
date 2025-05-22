@@ -105,14 +105,14 @@
                 <h1 class="page-title">@yield('page-title', 'Dashboard')</h1>
             </div>
             <div class="header-right">
-                <div class="user-dropdown" id="user-dropdown">
-                    <div class="user-info">
-                        <div class="user-avatar">
+                <div class="user-dropdown-app" id="user-dropdown">
+                    <div class="user-info-app">
+                        <div class="user-avatar-app">
                             {{ substr(session('user_nombre'), 0, 1) }}
                         </div>
-                        <div class="user-details">
-                            <span class="user-name">{{ session('user_nombre') }}</span>
-                            <span class="user-role">{{ session('user_rol') }}</span>
+                        <div class="user-details-app">
+                            <span class="user-name-app">{{ session('user_nombre') }}</span>
+                            <span class="user-role-app">{{ session('user_rol') }}</span>
                         </div>
                         <i class="fas fa-chevron-down dropdown-toggle"></i>
                     </div>

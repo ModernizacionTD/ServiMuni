@@ -271,12 +271,12 @@ body {
     color: white;
 }
 
-.user-dropdown {
+.user-dropdown-app {
     position: relative;
     cursor: pointer;
 }
 
-.user-info {
+.user-info-app {
     display: flex;
     align-items: center;
     padding: 8px 12px;
@@ -284,11 +284,11 @@ body {
     transition: background-color 0.3s;
 }
 
-.user-info:hover {
+.user-info-app:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-.user-avatar {
+.user-avatar-app {
     width: 38px;
     height: 38px;
     border-radius: 50%;
@@ -302,17 +302,17 @@ body {
     font-size: 1rem;
 }
 
-.user-details {
+.user-details-app {
     margin-right: 8px;
 }
 
-.user-name {
+.user-name-app {
     font-weight: 600;
     font-size: 0.9rem;
     color: white;
 }
 
-.user-role {
+.user-role-app {
     display: block;
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.85);
