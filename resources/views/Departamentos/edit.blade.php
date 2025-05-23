@@ -5,6 +5,8 @@
 @section('page-title', 'Editar Departamento')
 
 @section('content')
+<link rel="stylesheet" href="{{ asset('css/form.css') }}">
+
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">Editar Departamento</h2>

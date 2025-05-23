@@ -5,6 +5,7 @@
 @section('page-title', 'Crear Usuario')
 
 @section('content')
+<link rel="stylesheet" href="{{ asset('css/form.css') }}">
 
 <div class="card">
     <div class="card-header">

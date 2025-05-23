@@ -3804,12 +3804,12 @@
             "version": "7.1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/kawax/laravel-google-sheets.git",
+                "url": "https://github.com/invokable/laravel-google-sheets.git",
                 "reference": "d63c4f3b2b2385bd4bbf28e3a6b52d342536f0f9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kawax/laravel-google-sheets/zipball/d63c4f3b2b2385bd4bbf28e3a6b52d342536f0f9",
+                "url": "https://api.github.com/repos/invokable/laravel-google-sheets/zipball/d63c4f3b2b2385bd4bbf28e3a6b52d342536f0f9",
                 "reference": "d63c4f3b2b2385bd4bbf28e3a6b52d342536f0f9",
                 "shasum": ""
             },
@@ -3859,7 +3859,7 @@
                 "sheets"
             ],
             "support": {
-                "source": "https://github.com/kawax/laravel-google-sheets/tree/7.1.0"
+                "source": "https://github.com/invokable/laravel-google-sheets/tree/7.1.0"
             },
             "time": "2025-02-23T03:11:06+00:00"
         },

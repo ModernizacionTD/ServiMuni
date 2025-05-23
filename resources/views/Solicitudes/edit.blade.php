@@ -5,6 +5,8 @@
 @section('page-title', 'Editar Solicitud #' . $solicitud['id_solicitud'])
 
 @section('content')
+<link rel="stylesheet" href="{{ asset('css/form.css') }}">
+
 <div class="card">
     <div class="card-header">
         <h2 class="card-title"><i class="fas fa-edit me-2"></i>Editar Solicitud</h2>

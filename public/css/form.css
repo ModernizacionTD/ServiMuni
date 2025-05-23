@@ -1,0 +1,504 @@
+/* ===== FORM.CSS - Estilos específicos para formularios ===== */
+
+/* Contenedor específico para vistas con formularios */
+.form-view-container {
+    /* Variables específicas para formularios */
+    --form-primary-color: var(--primary-color, #2563eb);
+    --form-danger-color: var(--danger-color, #ef4444);
+    --form-border-color: var(--border-color, #e2e8f0);
+    --form-bg-white: var(--bg-white, #ffffff);
+    --form-text-color: var(--text-color, #1e293b);
+    --form-text-light: var(--text-light, #64748b);
+    --form-border-radius: var(--border-radius, 8px);
+    --form-transition-speed: var(--transition-speed, 0.2s);
+}
+
+/* ===== GRUPOS DE FORMULARIO ===== */
+.form-view-container .form-group {
+    margin-bottom: 20px;
+}
+
+.form-view-container .form-row .form-group {
+    margin-bottom: 16px;
+}
+
+/* ===== ETIQUETAS DE FORMULARIO ===== */
+.form-view-container .form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--form-text-color);
+    font-size: 0.9rem;
+}
+
+.form-view-container .form-label.required::after {
+    content: " *";
+    color: var(--form-danger-color);
+}
+
+/* ===== CONTROLES DE FORMULARIO ===== */
+.form-view-container .form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--form-border-color);
+    border-radius: var(--form-border-radius);
+    font-size: 0.95rem;
+    transition: border-color var(--form-transition-speed);
+    background-color: var(--form-bg-white);
+    color: var(--form-text-color);
+    font-family: inherit;
+}
+
+.form-view-container .form-control:focus {
+    border-color: var(--form-primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-view-container .form-control:disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.form-view-container .form-control.is-invalid {
+    border-color: var(--form-danger-color);
+}
+
+.form-view-container .form-control.is-invalid:focus {
+    border-color: var(--form-danger-color);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* ===== SELECTORES ===== */
+.form-view-container .form-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--form-border-color);
+    border-radius: var(--form-border-radius);
+    font-size: 0.95rem;
+    background-color: var(--form-bg-white);
+    color: var(--form-text-color);
+    transition: border-color var(--form-transition-speed);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 10px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+.form-view-container .form-select:focus {
+    border-color: var(--form-primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-view-container .form-select.is-invalid {
+    border-color: var(--form-danger-color);
+}
+
+/* ===== ÁREAS DE TEXTO ===== */
+.form-view-container .form-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--form-border-color);
+    border-radius: var(--form-border-radius);
+    font-size: 0.95rem;
+    background-color: var(--form-bg-white);
+    color: var(--form-text-color);
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+    transition: border-color var(--form-transition-speed);
+}
+
+.form-view-container .form-textarea:focus {
+    border-color: var(--form-primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ===== CHECKBOXES Y RADIOS ===== */
+.form-view-container .form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.form-view-container .form-check-input {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--form-primary-color);
+}
+
+.form-view-container .form-check-label {
+    font-size: 0.9rem;
+    color: var(--form-text-color);
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+/* ===== GRUPOS DE INPUT ===== */
+.form-view-container .input-group {
+    display: flex;
+    width: 100%;
+}
+
+.form-view-container .input-group .form-control {
+    border-radius: 0;
+    border-right: none;
+}
+
+.form-view-container .input-group .form-control:first-child {
+    border-top-left-radius: var(--form-border-radius);
+    border-bottom-left-radius: var(--form-border-radius);
+}
+
+.form-view-container .input-group .form-control:last-child {
+    border-top-right-radius: var(--form-border-radius);
+    border-bottom-right-radius: var(--form-border-radius);
+    border-right: 1px solid var(--form-border-color);
+}
+
+.form-view-container .input-group-text {
+    padding: 10px 14px;
+    background-color: #f8f9fa;
+    border: 1px solid var(--form-border-color);
+    color: var(--form-text-light);
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+}
+
+.form-view-container .input-group .input-group-text:first-child {
+    border-top-left-radius: var(--form-border-radius);
+    border-bottom-left-radius: var(--form-border-radius);
+    border-right: none;
+}
+
+.form-view-container .input-group .input-group-text:last-child {
+    border-top-right-radius: var(--form-border-radius);
+    border-bottom-right-radius: var(--form-border-radius);
+    border-left: none;
+}
+
+/* ===== MENSAJES DE VALIDACIÓN ===== */
+.form-view-container .invalid-feedback {
+    display: block;
+    color: var(--form-danger-color);
+    font-size: 0.875rem;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.form-view-container .valid-feedback {
+    display: block;
+    color: #28a745;
+    font-size: 0.875rem;
+    margin-top: 4px;
+}
+
+.form-view-container .form-text {
+    color: var(--form-text-light);
+    font-size: 0.875rem;
+    margin-top: 4px;
+}
+
+/* ===== BOTONES DE FORMULARIO ===== */
+.form-view-container .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--form-border-color);
+}
+
+.form-view-container .form-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--form-border-radius);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--form-transition-speed);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.form-view-container .form-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.form-view-container .form-btn-primary {
+    background-color: var(--form-primary-color);
+    color: white;
+}
+
+.form-view-container .form-btn-primary:hover:not(:disabled) {
+    background-color: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.form-view-container .form-btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.form-view-container .form-btn-secondary:hover:not(:disabled) {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+}
+
+.form-view-container .form-btn-outline {
+    background-color: transparent;
+    border: 1px solid var(--form-border-color);
+    color: var(--form-text-color);
+}
+
+.form-view-container .form-btn-outline:hover:not(:disabled) {
+    background-color: var(--form-primary-color);
+    color: white;
+    border-color: var(--form-primary-color);
+}
+
+.form-view-container .form-btn-danger {
+    background-color: var(--form-danger-color);
+    color: white;
+}
+
+.form-view-container .form-btn-danger:hover:not(:disabled) {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* ===== FIELDSETS Y LEYENDAS ===== */
+.form-view-container .form-fieldset {
+    border: 1px solid var(--form-border-color);
+    border-radius: var(--form-border-radius);
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.form-view-container .form-legend {
+    font-weight: 600;
+    color: var(--form-text-color);
+    padding: 0 10px;
+    font-size: 1rem;
+}
+
+/* ===== SECCIONES DE FORMULARIO ===== */
+.form-view-container .form-section {
+    margin-bottom: 32px;
+}
+
+.form-view-container .form-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--form-text-color);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--form-border-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-view-container .form-section-title i {
+    color: var(--form-primary-color);
+}
+
+/* ===== LAYOUTS DE FORMULARIO ===== */
+.form-view-container .form-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.form-view-container .form-col {
+    flex: 1;
+}
+
+.form-view-container .form-col-2 {
+    flex: 0 0 50%;
+}
+
+.form-view-container .form-col-3 {
+    flex: 0 0 33.333%;
+}
+
+.form-view-container .form-col-4 {
+    flex: 0 0 25%;
+}
+
+/* ===== FORMULARIOS INLINE ===== */
+.form-view-container .form-inline {
+    display: flex;
+    align-items: end;
+    gap: 12px;
+}
+
+.form-view-container .form-inline .form-group {
+    margin-bottom: 0;
+    flex: 1;
+}
+
+.form-view-container .form-inline .form-control {
+    width: auto;
+    min-width: 120px;
+}
+
+/* ===== INDICADORES DE CARGA ===== */
+.form-view-container .form-loading {
+    position: relative;
+}
+
+.form-view-container .form-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--form-border-radius);
+}
+
+.form-view-container .form-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid var(--form-primary-color);
+    border-radius: 50%;
+    animation: form-spin 1s linear infinite;
+}
+
+@keyframes form-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===== TOOLTIPS DE AYUDA ===== */
+.form-view-container .form-help {
+    position: relative;
+    display: inline-block;
+    margin-left: 4px;
+}
+
+.form-view-container .form-help-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: var(--form-text-light);
+    color: white;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+}
+
+.form-view-container .form-help-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+    z-index: 1000;
+}
+
+.form-view-container .form-help:hover .form-help-tooltip {
+    opacity: 1;
+    visibility: visible;
+    bottom: calc(100% + 5px);
+}
+
+/* ===== ESTADOS DE FORMULARIO ===== */
+.form-view-container .form-success {
+    border: 1px solid #28a745;
+    background-color: #f8fff9;
+}
+
+.form-view-container .form-warning {
+    border: 1px solid #ffc107;
+    background-color: #fffdf5;
+}
+
+.form-view-container .form-error {
+    border: 1px solid var(--form-danger-color);
+    background-color: #fef2f2;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .form-view-container .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .form-view-container .form-col,
+    .form-view-container .form-col-2,
+    .form-view-container .form-col-3,
+    .form-view-container .form-col-4 {
+        flex: none;
+        width: 100%;
+    }
+    
+    .form-view-container .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-view-container .form-inline {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-view-container .form-inline .form-group {
+        margin-bottom: 16px;
+    }
+    
+    .form-view-container .form-inline .form-control {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-view-container .form-fieldset {
+        padding: 16px;
+    }
+    
+    .form-view-container .form-control,
+    .form-view-container .form-select,
+    .form-view-container .form-textarea {
+        padding: 8px 12px;
+        font-size: 16px; /* Evita zoom en iOS */
+    }
+    
+    .form-view-container .form-btn {
+        padding: 12px 16px;
+        width: 100%;
+        justify-content: center;
+    }
+}

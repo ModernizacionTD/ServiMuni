@@ -5,409 +5,510 @@
 @section('page-title', 'Búsqueda de Usuario')
 
 @section('content')
-<div class="container">
-    <!-- Sección de búsqueda por RUT mejorada -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h2 class="card-title mb-0"><i class="fas fa-search me-2"></i>Buscar Usuario por RUT</h2>
+<div class="search-view-container table-view-container">
+    <link rel="stylesheet" href="{{ asset('css/busqueda.css') }}">
+
+    <div class="card">
+        <div class="card-header search-card-header">
+            <h3 class="card-title search-card-title">
+                <i class="fas fa-search me-2"></i>Buscar Usuario
+            </h3>
         </div>
-        <div class="card-body">
-            <form id="buscarUsuarioForm" method="GET" action="{{ route('buscar.usuario') }}" class="row align-items-end">
-                <div class="col-md-6">
-                    <div class="form-group mb-0">
-                        <label for="rut" class="form-label">Ingrese RUT del Usuario</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light">
-                                <i class="fas fa-id-card text-primary"></i>
-                            </span>
-                            <input type="text" id="rut" name="rut" class="form-control" 
-                                   placeholder="Ej: 12345678-9" 
-                                   value="{{ $rut ?? '' }}" 
-                                   required
-                                   maxlength="12"
-                                   pattern="[0-9]{7,8}-[0-9kK]{1}">
-                        </div>
-                        <small class="text-muted">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Ingrese RUT sin puntos y con guión. Formato: 12345678-9
-                        </small>
-                        <div class="invalid-feedback" id="rutError"></div>
+        <div class="card-body search-card-body">
+            <form id="buscarUsuarioForm" method="GET" action="{{ route('buscar.usuario') }}" class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label for="rut" class="form-label fw-semibold">RUT del Usuario</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-id-card text-primary"></i>
+                        </span>
+                        <input type="text" id="rut" name="rut" class="form-control" 
+                               placeholder="Ej: 12345678-9" 
+                               value="{{ $rut ?? '' }}" 
+                               required
+                               maxlength="12"
+                               pattern="[0-9]{7,8}-[0-9kK]{1}">
                     </div>
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Formato: 12345678-9 (sin puntos, con guión)
+                    </small>
+                    <div class="invalid-feedback" id="rutError"></div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary" id="btnBuscar">
-                            <i class="fas fa-search me-1"></i> Buscar
+                        <button type="submit" class="btn btn-primary flex-fill" id="btnBuscar">
+                            <i class="fas fa-search me-2"></i> Buscar
                         </button>
                         <button type="button" class="btn btn-outline-secondary" id="btnLimpiar">
-                            <i class="fas fa-eraser me-1"></i> Limpiar
+                            <i class="fas fa-broom"></i>
                         </button>
-                        <a href="{{ route('usuarios.create') }}" class="btn btn-success" id="btnNuevoUsuario">
-                            <i class="fas fa-user-plus me-1"></i> Nuevo Usuario
-                        </a>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Indicador de carga -->
-    <div class="loading-indicator" id="loadingIndicator" style="display: none;">
-        <div class="card">
-            <div class="card-body text-center">
-                <div class="spinner-border text-primary mb-3" role="status">
-                    <span class="visually-hidden">Cargando...</span>
+    @if(isset($usuario))
+    <!-- Información del Usuario Encontrado -->
+    <div class="card" id="usuarioCard">
+        <div class="card-header bg-success text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-user-check me-2"></i>Usuario Encontrado
+                </h3>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-light" id="btnEditarContacto">
+                        <i class="fas fa-edit me-1"></i> Editar Contacto
+                    </button>
+                    <a href="{{ route('solicitudes.create', ['rut' => $usuario['rut']]) }}" 
+                       class="btn btn-sm btn-warning">
+                        <i class="fas fa-plus me-1"></i> Nueva Solicitud
+                    </a>
                 </div>
-                <p class="mb-0">Buscando usuario...</p>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Vista de Información -->
+            <div id="usuarioInfo">
+                <!-- Header con avatar y nombre -->
+                <div class="user-header mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="user-avatar me-3">
+                            @php
+                                $nombre = $usuario['nombre'] ?? 'U';
+                                $apellidos = $usuario['apellidos'] ?? '';
+                                $palabras = array_filter(explode(' ', trim($nombre . ' ' . $apellidos)));
+                                if (count($palabras) >= 2) {
+                                    $iniciales = strtoupper($palabras[0][0] . $palabras[1][0]);
+                                } else {
+                                    $iniciales = strtoupper(substr($nombre, 0, 2));
+                                }
+                            @endphp
+                            {{ $iniciales }}
+                        </div>
+                        <div class="user-basic-info">
+                            <h4 class="mb-1">{{ $usuario['nombre'] }} {{ $usuario['apellidos'] }}</h4>
+                            <div class="d-flex gap-3 text-muted">
+                                <span><i class="fas fa-id-card me-1"></i>{{ $usuario['rut'] }}</span>
+                                <span class="status-badge {{ $usuario['tipo_persona'] == 'Natural' ? 'bg-primary' : 'bg-info' }}">
+                                    {{ $usuario['tipo_persona'] }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información Detallada -->
+                <div class="row g-3">
+                    @if($usuario['tipo_persona'] == 'Natural')
+                    <!-- Datos Personales -->
+                    <div class="col-md-6">
+                        <div class="search-info-group">
+                            <h6 class="search-info-group-title">
+                                <i class="fas fa-user text-primary me-2"></i>Datos Personales
+                            </h6>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Fecha de Nacimiento:</span>
+                                    <span class="info-value">
+                                        {{ \Carbon\Carbon::parse($usuario['fecha_nacimiento'])->format('d/m/Y') }}
+                                        <small class="text-muted">({{ \Carbon\Carbon::parse($usuario['fecha_nacimiento'])->age }} años)</small>
+                                    </span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Género:</span>
+                                    <span class="info-value">{{ $usuario['genero'] ?? 'No especificado' }}</span>
+                                </div>
+                                @if($usuario['uso_ns'] == 'Sí')
+                                <div class="info-item">
+                                    <span class="info-label">Nombre Social:</span>
+                                    <span class="info-value">{{ $usuario['nombre_social'] ?: 'No especificado' }}</span>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Información de Contacto -->
+                    <div class="col-md-6">
+                        <div class="search-info-group">
+                            <h6 class="search-info-group-title">
+                                <i class="fas fa-phone text-success me-2"></i>Contacto
+                            </h6>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Teléfono Principal:</span>
+                                    <span class="info-value">
+                                        <a href="tel:{{ $usuario['telefono'] }}" class="contact-link">
+                                            <i class="fas fa-phone me-1"></i>{{ $usuario['telefono'] }}
+                                        </a>
+                                    </span>
+                                </div>
+                                @if($usuario['telefono_2'])
+                                <div class="info-item">
+                                    <span class="info-label">Teléfono Alternativo:</span>
+                                    <span class="info-value">
+                                        <a href="tel:{{ $usuario['telefono_2'] }}" class="contact-link">
+                                            <i class="fas fa-phone me-1"></i>{{ $usuario['telefono_2'] }}
+                                        </a>
+                                    </span>
+                                </div>
+                                @endif
+                                <div class="info-item">
+                                    <span class="info-label">Email Principal:</span>
+                                    <span class="info-value">
+                                        <a href="mailto:{{ $usuario['email'] }}" class="contact-link">
+                                            <i class="fas fa-envelope me-1"></i>{{ $usuario['email'] }}
+                                        </a>
+                                    </span>
+                                </div>
+                                @if($usuario['email_2'])
+                                <div class="info-item">
+                                    <span class="info-label">Email Alternativo:</span>
+                                    <span class="info-value">
+                                        <a href="mailto:{{ $usuario['email_2'] }}" class="contact-link">
+                                            <i class="fas fa-envelope me-1"></i>{{ $usuario['email_2'] }}
+                                        </a>
+                                    </span>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dirección (Ancho completo) -->
+                    <div class="col-12">
+                        <div class="search-info-group">
+                            <h6 class="search-info-group-title">
+                                <i class="fas fa-map-marker-alt text-danger me-2"></i>Dirección
+                            </h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="info-value">{{ $usuario['direccion'] }}</span>
+                                <a href="https://www.google.com/maps/search/{{ urlencode($usuario['direccion']) }}" 
+                                   target="_blank" class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-external-link-alt me-1"></i>Ver en mapa
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas de Solicitudes -->
+                    @if(isset($solicitudes))
+                    <div class="col-12">
+                        <div class="search-info-group">
+                            <h6 class="search-info-group-title">
+                                <i class="fas fa-chart-bar text-info me-2"></i>Resumen de Solicitudes
+                            </h6>
+                            <div class="stats-grid">
+                                @php
+                                    $totalSolicitudes = count($solicitudes);
+                                    $pendientes = collect($solicitudes)->where('estado', 'Pendiente')->count();
+                                    $enProceso = collect($solicitudes)->where('estado', 'En proceso')->count();
+                                    $completadas = collect($solicitudes)->where('estado', 'Completado')->count();
+                                @endphp
+                                
+                                <div class="stat-item">
+                                    <div class="stat-icon bg-primary">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <span class="stat-number">{{ $totalSolicitudes }}</span>
+                                        <span class="stat-label">Total</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-item">
+                                    <div class="stat-icon bg-warning">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <span class="stat-number">{{ $pendientes }}</span>
+                                        <span class="stat-label">Pendientes</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-item">
+                                    <div class="stat-icon bg-info">
+                                        <i class="fas fa-cog"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <span class="stat-number">{{ $enProceso }}</span>
+                                        <span class="stat-label">En Proceso</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-item">
+                                    <div class="stat-icon bg-success">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <span class="stat-number">{{ $completadas }}</span>
+                                        <span class="stat-label">Completadas</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Formulario de Edición -->
+            <div id="editarUsuarioForm" style="display: none;">
+                <form method="POST" action="{{ route('usuarios.update.contacto', $usuario['rut']) }}">
+                    @csrf
+                    @method('PUT')
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="telefono" class="form-label">Teléfono Principal *</label>
+                            <input type="tel" class="form-control" id="telefono" name="telefono" 
+                                   value="{{ $usuario['telefono'] }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="telefono_2" class="form-label">Teléfono Alternativo</label>
+                            <input type="tel" class="form-control" id="telefono_2" name="telefono_2" 
+                                   value="{{ $usuario['telefono_2'] }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email Principal *</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ $usuario['email'] }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email_2" class="form-label">Email Alternativo</label>
+                            <input type="email" class="form-control" id="email_2" name="email_2" 
+                                   value="{{ $usuario['email_2'] }}">
+                        </div>
+                        <div class="col-12">
+                            <label for="direccion" class="form-label">Dirección *</label>
+                            <input type="text" class="form-control" id="direccion" name="direccion" 
+                                   value="{{ $usuario['direccion'] }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-2"></i> Guardar Cambios
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="btnCancelarEdicion">
+                            <i class="fas fa-times me-2"></i> Cancelar
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Resultados de la búsqueda -->
-    @if(isset($usuario))
-        <div class="result-container" id="resultContainer">
-            <div class="alert alert-success shadow-sm">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-check-circle fs-4 me-3"></i>
-                    <div>
-                        <h5 class="mb-1">Usuario encontrado</h5>
-                        <p class="mb-0">{{ $usuario['nombre'] }} {{ $usuario['apellidos'] }} - RUT: {{ $usuario['rut'] }}</p>
-                    </div>
+    <!-- Historial de Solicitudes -->
+    @if(isset($solicitudes) && count($solicitudes) > 0)
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="card-title">
+                    <i class="fas fa-history me-2"></i>Historial de Solicitudes
+                </h3>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary active" onclick="filtrarSolicitudes('')">
+                        Todas ({{ count($solicitudes) }})
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="filtrarSolicitudes('Pendiente')">
+                        Pendientes ({{ collect($solicitudes)->where('estado', 'Pendiente')->count() }})
+                    </button>
+                    <button class="btn btn-outline-success" onclick="filtrarSolicitudes('Completado')">
+                        Completadas ({{ collect($solicitudes)->where('estado', 'Completado')->count() }})
+                    </button>
                 </div>
             </div>
-
-            <div class="row">
-                <!-- Información del usuario compacta -->
-                <div class="col-lg-8">
-                    <div class="card mb-4 shadow-sm">
-                        <div class="card-header d-flex justify-content-between align-items-center bg-light">
-                            <h3 class="card-title mb-0">
-                                <i class="fas fa-user me-2 text-primary"></i>
-                                Información del Usuario
-                            </h3>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnEditarUsuario">
-                                    <i class="fas fa-edit me-1"></i> Editar
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-body p-3">
-                            <!-- Vista normal de información COMPACTA -->
-                            <div id="usuarioInfo">
-                                <div class="row g-2">
-                                    <div class="col-md-3">
-                                        <small class="text-muted d-block">RUT</small>
-                                        <span class="fw-bold">{{ $usuario['rut'] }}</span>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <small class="text-muted d-block">Tipo</small>
-                                        <span class="badge {{ $usuario['tipo_persona'] == 'Natural' ? 'bg-primary' : 'bg-info' }}">
-                                            {{ $usuario['tipo_persona'] }}
-                                        </span>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <small class="text-muted d-block">Nombre Completo</small>
-                                        <span class="fw-bold">{{ $usuario['nombre'] }} {{ $usuario['apellidos'] }}</span>
-                                    </div>
-                                </div>
-
-                                @if($usuario['tipo_persona'] == 'Natural')
-                                <div class="row g-2 mt-2">
-                                    <div class="col-md-4">
-                                        <small class="text-muted d-block">Fecha Nacimiento</small>
-                                        <span>{{ \Carbon\Carbon::parse($usuario['fecha_nacimiento'])->format('d/m/Y') }}</span>
-                                        <small class="text-muted ms-1">({{ \Carbon\Carbon::parse($usuario['fecha_nacimiento'])->age }} años)</small>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <small class="text-muted d-block">Género</small>
-                                        <span>{{ $usuario['genero'] }}</span>
-                                    </div>
-                                    @if($usuario['uso_ns'] == 'Sí')
-                                    <div class="col-md-4">
-                                        <small class="text-muted d-block">Nombre Social</small>
-                                        <span>{{ $usuario['nombre_social'] ?: 'No especificado' }}</span>
-                                    </div>
-                                    @endif
-                                </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table data-table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th width="10%">ID</th>
+                            <th width="12%">Fecha</th>
+                            <th width="30%">Requerimiento</th>
+                            <th width="12%">Estado</th>
+                            <th width="18%">Etapa</th>
+                            <th width="18%">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="solicitudesTableBody">
+                        @foreach($solicitudes as $solicitud)
+                        <tr class="solicitud-row" data-estado="{{ $solicitud['estado'] }}">
+                            <td>
+                                <span class="fw-bold text-primary">#{{ $solicitud['id_solicitud'] }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ \Carbon\Carbon::parse($solicitud['fecha_inicio'])->format('d/m/Y') }}</span>
+                            </td>
+                            <td>
+                                @if(isset($solicitud['requerimiento_id']) && isset($requerimientos[$solicitud['requerimiento_id']]))
+                                    <span class="status-badge bg-light text-dark border">{{ $requerimientos[$solicitud['requerimiento_id']]['nombre'] }}</span>
+                                @else
+                                    <span class="text-muted">No especificado</span>
                                 @endif
-
-                                <div class="row g-2 mt-2">
-                                    <div class="col-md-6">
-                                        <small class="text-muted d-block">Teléfonos</small>
-                                        <div>
-                                            <a href="tel:{{ $usuario['telefono'] }}" class="text-decoration-none me-2">
-                                                <i class="fas fa-phone text-primary me-1"></i>{{ $usuario['telefono'] }}
-                                            </a>
-                                            @if($usuario['telefono_2'])
-                                                <a href="tel:{{ $usuario['telefono_2'] }}" class="text-decoration-none">
-                                                    <i class="fas fa-phone text-secondary me-1"></i>{{ $usuario['telefono_2'] }}
-                                                </a>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <small class="text-muted d-block">Emails</small>
-                                        <div>
-                                            <a href="mailto:{{ $usuario['email'] }}" class="text-decoration-none d-block">
-                                                <i class="fas fa-envelope text-primary me-1"></i>{{ $usuario['email'] }}
-                                            </a>
-                                            @if($usuario['email_2'])
-                                                <a href="mailto:{{ $usuario['email_2'] }}" class="text-decoration-none d-block">
-                                                    <i class="fas fa-envelope text-secondary me-1"></i>{{ $usuario['email_2'] }}
-                                                </a>
-                                            @endif
-                                        </div>
-                                    </div>
+                            </td>
+                            <td>
+                                <span class="status-badge 
+                                    @if($solicitud['estado'] == 'Completado') status-success
+                                    @elseif($solicitud['estado'] == 'En proceso') bg-primary
+                                    @elseif($solicitud['estado'] == 'Pendiente') bg-warning text-dark
+                                    @else status-secondary @endif">
+                                    {{ $solicitud['estado'] }}
+                                </span>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ $solicitud['etapa'] ?: 'Sin etapa' }}</small>
+                                @if($solicitud['providencia'])
+                                <br><small class="text-info">{{ $solicitud['providencia'] }}</small>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <a href="{{ route('solicitudes.show', $solicitud['id_solicitud']) }}" 
+                                       class="btn btn-sm btn-info action-btn btn-view" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ route('solicitudes.edit', $solicitud['id_solicitud']) }}" 
+                                       class="btn btn-sm btn-primary action-btn btn-edit" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
                                 </div>
-
-                                <div class="row g-2 mt-2">
-                                    <div class="col-12">
-                                        <small class="text-muted d-block">Dirección</small>
-                                        <span>{{ $usuario['direccion'] }}</span>
-                                        <a href="https://www.google.com/maps/search/{{ urlencode($usuario['direccion']) }}" 
-                                           target="_blank" class="btn btn-sm btn-outline-info ms-2">
-                                            <i class="fas fa-map"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Formulario de edición compacto -->
-                            <div id="editarUsuarioForm" style="display: none;">
-                                <form method="POST" action="{{ route('usuarios.update.contacto', $usuario['rut']) }}">
-                                    @csrf
-                                    @method('PUT')
-                                    
-                                    <div class="row g-2 mb-3">
-                                        <div class="col-md-6">
-                                            <label for="telefono" class="form-label">Teléfono Principal</label>
-                                            <input type="tel" class="form-control form-control-sm" id="telefono" name="telefono" 
-                                                   value="{{ $usuario['telefono'] }}" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="telefono_2" class="form-label">Teléfono Alternativo</label>
-                                            <input type="tel" class="form-control form-control-sm" id="telefono_2" name="telefono_2" 
-                                                   value="{{ $usuario['telefono_2'] }}">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row g-2 mb-3">
-                                        <div class="col-md-6">
-                                            <label for="email" class="form-label">Email Principal</label>
-                                            <input type="email" class="form-control form-control-sm" id="email" name="email" 
-                                                   value="{{ $usuario['email'] }}" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="email_2" class="form-label">Email Alternativo</label>
-                                            <input type="email" class="form-control form-control-sm" id="email_2" name="email_2" 
-                                                   value="{{ $usuario['email_2'] }}">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="direccion" class="form-label">Dirección</label>
-                                        <input type="text" class="form-control form-control-sm" id="direccion" name="direccion" 
-                                               value="{{ $usuario['direccion'] }}" required>
-                                    </div>
-                                    
-                                    <div class="d-flex gap-2">
-                                        <button type="submit" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-save me-1"></i> Guardar
-                                        </button>
-                                        <button type="button" class="btn btn-secondary btn-sm" id="btnCancelarEdicion">
-                                            <i class="fas fa-times me-1"></i> Cancelar
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Panel lateral compacto -->
-                <div class="col-lg-4">
-                    <!-- Botón para nueva solicitud -->
-                    <div class="card mb-4 shadow-sm border-success">
-                        <div class="card-header bg-success text-white py-2">
-                            <h4 class="card-title mb-0">
-                                <i class="fas fa-plus-circle me-2"></i>Nueva Solicitud
-                            </h4>
-                        </div>
-                        <div class="card-body p-3 text-center">
-                            <a href="{{ route('solicitudes.create', ['rut' => $usuario['rut']]) }}" 
-                               class="btn btn-success w-100">
-                                <i class="fas fa-clipboard-list me-2"></i> Crear Solicitud
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Historial de solicitudes mejorado -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-history me-2"></i>Historial de Solicitudes
-                    </h3>
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-outline-secondary" onclick="filtrarSolicitudes('')">
-                            Todas
-                        </button>
-                        <button class="btn btn-sm btn-outline-primary" onclick="filtrarSolicitudes('Pendiente')">
-                            Pendientes
-                        </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="filtrarSolicitudes('Completado')">
-                            Completadas
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    @if(isset($solicitudes) && count($solicitudes) > 0)
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th width="10%">ID</th>
-                                        <th width="12%">Fecha</th>
-                                        <th width="20%">Requerimiento</th>
-                                        <th width="12%">Estado</th>
-                                        <th width="12%">Etapa</th>
-                                        <th width="12%">Providencia</th>
-                                        <th width="22%">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="solicitudesTableBody">
-                                    @foreach($solicitudes as $solicitud)
-                                    <tr class="solicitud-row" data-estado="{{ $solicitud['estado'] }}">
-                                        <td>
-                                            <span class="fw-bold">#{{ $solicitud['id_solicitud'] }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="small">{{ \Carbon\Carbon::parse($solicitud['fecha_inicio'])->format('d/m/Y') }}</span>
-                                        </td>
-                                        <td>
-                                            @if(isset($solicitud['requerimiento_id']) && isset($requerimientos[$solicitud['requerimiento_id']]))
-                                                <span class="badge bg-light text-dark">{{ $requerimientos[$solicitud['requerimiento_id']]['nombre'] }}</span>
-                                            @else
-                                                <span class="text-muted small">No especificado</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <span class="badge 
-                                                @if($solicitud['estado'] == 'Completado') bg-success
-                                                @elseif($solicitud['estado'] == 'En proceso') bg-primary
-                                                @elseif($solicitud['estado'] == 'Pendiente') bg-warning text-dark
-                                                @else bg-secondary @endif">
-                                                {{ $solicitud['estado'] }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <small class="text-muted">{{ $solicitud['etapa'] }}</small>
-                                        </td>
-                                        <td>
-                                            <small class="text-muted">{{ $solicitud['providencia'] ?: 'N/A' }}</small>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <a href="{{ route('solicitudes.show', $solicitud['id_solicitud']) }}" 
-                                                   class="btn btn-sm btn-outline-info" title="Ver detalles">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{{ route('solicitudes.edit', $solicitud['id_solicitud']) }}" 
-                                                   class="btn btn-sm btn-outline-primary" title="Editar">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <button class="btn btn-sm btn-outline-secondary" 
-                                                        onclick="verDetalleRapido({{ $solicitud['id_solicitud'] }})" 
-                                                        title="Vista rápida">
-                                                    <i class="fas fa-search-plus"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="text-center py-5">
-                            <i class="fas fa-clipboard-list fs-1 text-muted mb-3"></i>
-                            <h5 class="text-muted">No hay solicitudes registradas</h5>
-                            <p class="text-muted">Este usuario no tiene solicitudes registradas en el sistema.</p>
-                            <a href="{{ route('solicitudes.create', ['rut' => $usuario['rut']]) }}" 
-                               class="btn btn-primary">
-                                <i class="fas fa-plus me-2"></i>Crear Primera Solicitud
-                            </a>
-                        </div>
-                    @endif
-                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
-    @elseif(isset($rut) && !isset($usuario))
-        <!-- Usuario no encontrado -->
-        <div class="result-container" id="resultContainer">
-            <div class="alert alert-warning shadow-sm">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-exclamation-triangle fs-4 me-3"></i>
-                    <div>
-                        <h5 class="mb-1">Usuario no encontrado</h5>
-                        <p class="mb-0">No se encontró ningún usuario con el RUT: <strong>{{ $rut }}</strong></p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card shadow-sm">
-                <div class="card-body text-center py-5">
-                    <i class="fas fa-user-plus fs-1 text-primary mb-4"></i>
-                    <h4 class="mb-3">¿Desea registrar este usuario?</h4>
-                    <p class="text-muted mb-4">El usuario con RUT {{ $rut }} no está registrado en el sistema.</p>
-                    <div class="d-grid gap-2 d-md-block">
-                        <a href="{{ route('usuarios.create', ['rut' => $rut]) }}" 
-                           class="btn btn-primary btn-lg">
-                            <i class="fas fa-user-plus me-2"></i> Registrar Usuario
-                        </a>
-                        <button class="btn btn-outline-secondary btn-lg" id="btnBuscarOtro">
-                            <i class="fas fa-search me-2"></i> Buscar Otro RUT
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+    </div>
     @endif
+
+    @elseif(isset($rut) && !isset($usuario))
+    <!-- Usuario No Encontrado -->
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            <h3 class="card-title">
+                <i class="fas fa-user-slash me-2"></i>Usuario No Encontrado
+            </h3>
+        </div>
+        <div class="card-body text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-user-times display-1 text-warning"></i>
+            </div>
+            <h4 class="mb-3">No se encontró el usuario</h4>
+            <p class="text-muted mb-4">
+                No existe ningún usuario registrado con el RUT: <strong>{{ $rut }}</strong>
+            </p>
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="{{ route('usuarios.create') }}?rut={{ $rut }}" class="btn btn-success">
+                    <i class="fas fa-user-plus me-2"></i>Registrar Usuario
+                </a>
+                <button type="button" class="btn btn-outline-secondary" onclick="limpiarBusqueda()">
+                    <i class="fas fa-search me-2"></i>Nueva Búsqueda
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Indicador de carga -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <h5 class="text-primary">Buscando usuario...</h5>
+            <p class="text-muted">Por favor espere un momento</p>
+        </div>
+    </div>
 </div>
 
-<!-- Toast para notificaciones eliminado -->
-
-<!-- Modal de detalle rápido eliminado -->
-
 <style>
-/* Estilos adicionales */
-.info-item {
-    margin-bottom: 1rem;
+/* Estilos específicos para buscar usuario */
+.user-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    padding: 20px;
 }
 
-.info-label {
-    font-size: 0.85rem;
+.user-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #2c5aa0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 12px rgba(56, 103, 214, 0.3);
+}
+
+.user-basic-info h4 {
     font-weight: 600;
-    color: var(--text-light);
-    margin-bottom: 0.25rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color: var(--text-color);
 }
 
-.info-value {
-    font-size: 0.95rem;
-    color: var(--text-color);
-    font-weight: 500;
+.info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.contact-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.contact-link:hover {
+    color: #2c5aa0;
+    text-decoration: none;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 16px;
 }
 
 .stat-item {
-    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-light);
+    border-radius: 8px;
+    gap: 10px;
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
 }
 
 .stat-number {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--text-color);
     line-height: 1;
 }
 
@@ -418,132 +519,53 @@
     letter-spacing: 0.5px;
 }
 
-.loading-indicator {
-    animation: fadeIn 0.3s ease-in;
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.result-container {
-    animation: slideInUp 0.5s ease-out;
+.loading-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Mejoras visuales */
-.card {
-    border: none;
-    border-radius: 12px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
-}
-
-.btn {
-    border-radius: 8px;
+.status-badge {
     font-weight: 500;
-    transition: all 0.2s ease;
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
-.btn:hover {
-    transform: translateY(-1px);
-}
-
-.table {
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.table th {
-    border-top: none;
-    background-color: #f8f9fa;
-    font-weight: 600;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.input-group-text {
-    border: none;
-}
-
-.form-control:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
-}
-
-/* Responsive improvements */
+/* Responsive */
 @media (max-width: 768px) {
-    .card-body {
-        padding: 1rem;
+    .user-header {
+        text-align: center;
     }
     
-    .btn-group {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .btn-group .btn {
-        border-radius: 8px !important;
-        margin-bottom: 0.25rem;
-    }
-    
-    .info-value {
-        font-size: 0.9rem;
-    }
-    
-    .stat-number {
+    .user-avatar {
+        width: 50px;
+        height: 50px;
         font-size: 1.25rem;
+        margin: 0 auto 12px;
     }
-}
-
-/* Toast customization */
-.toast {
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
-/* Modal improvements */
-.modal-content {
-    border: none;
-    border-radius: 12px;
-}
-
-.modal-header {
-    border-bottom: 1px solid #eee;
-    background-color: #f8f9fa;
-}
-
-/* Badge improvements */
-.badge {
-    font-weight: 500;
-    padding: 0.5em 0.75em;
-    border-radius: 6px;
-}
-
-/* Animation for form toggle */
-#editarUsuarioForm {
-    transition: all 0.3s ease;
-}
-
-#usuarioInfo {
-    transition: all 0.3s ease;
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 </style>
 
@@ -553,31 +575,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const rutInput = document.getElementById('rut');
     const btnBuscar = document.getElementById('btnBuscar');
     const btnLimpiar = document.getElementById('btnLimpiar');
-    const btnEditarUsuario = document.getElementById('btnEditarUsuario');
+    const btnEditarContacto = document.getElementById('btnEditarContacto');
     const btnCancelarEdicion = document.getElementById('btnCancelarEdicion');
-    const btnVerCompleto = document.getElementById('btnVerCompleto');
-    const btnBuscarOtro = document.getElementById('btnBuscarOtro');
     const usuarioInfo = document.getElementById('usuarioInfo');
-    const usuarioInfoCompleto = document.getElementById('usuarioInfoCompleto');
     const editarUsuarioForm = document.getElementById('editarUsuarioForm');
-    const loadingIndicator = document.getElementById('loadingIndicator');
+    const loadingOverlay = document.getElementById('loadingOverlay');
     const buscarUsuarioForm = document.getElementById('buscarUsuarioForm');
 
     // Validación y formateo de RUT
     if (rutInput) {
-        // Formatear RUT mientras se escribe (SIN PUNTOS, solo guión)
         rutInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/[^0-9kK\-]/g, ''); // Solo números, K y guión
-            
-            // Remover guiones existentes para reformatear
+            let value = e.target.value.replace(/[^0-9kK\-]/g, '');
             let cleanValue = value.replace(/\-/g, '');
             
             if (cleanValue.length > 1) {
-                // Separar dígito verificador
                 let rut = cleanValue.slice(0, -1);
                 let dv = cleanValue.slice(-1);
-                
-                // Formatear SIN puntos, solo con guión
                 value = rut + '-' + dv;
             } else {
                 value = cleanValue;
@@ -585,7 +598,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             e.target.value = value;
             
-            // Validar RUT si tiene el formato completo
             if (value.length >= 9) {
                 validateRUT(value);
             } else {
@@ -593,25 +605,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Validar al perder foco
         rutInput.addEventListener('blur', function(e) {
             if (e.target.value) {
                 validateRUT(e.target.value);
             }
         });
 
-        // Permitir solo ciertos caracteres
         rutInput.addEventListener('keypress', function(e) {
             const allowedChars = /[0-9kK\-]/;
-            if (!allowedChars.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') {
+            if (!allowedChars.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter'].includes(e.key)) {
                 e.preventDefault();
+            }
+            
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (validateRUT(e.target.value)) {
+                    buscarUsuarioForm.submit();
+                }
             }
         });
     }
 
     // Función para validar RUT
     function validateRUT(rut) {
-        // Formato esperado: 12345678-9 (sin puntos)
         const rutRegex = /^\d{7,8}-[\dkK]$/;
         
         if (!rutRegex.test(rut)) {
@@ -619,7 +635,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
 
-        // Validar dígito verificador
         const cleanRut = rut.replace(/\-/g, '');
         const rutNumbers = cleanRut.slice(0, -1);
         const dv = cleanRut.slice(-1).toLowerCase();
@@ -651,7 +666,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return dv.toString();
     }
 
-    // Mostrar error de RUT
+    // Mostrar error de RUT  
     function showRutError(message) {
         const rutError = document.getElementById('rutError');
         if (rutError) {
@@ -674,45 +689,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Botón limpiar
     if (btnLimpiar) {
-        btnLimpiar.addEventListener('click', function() {
-            rutInput.value = '';
-            clearRutValidation();
-            rutInput.focus();
-            
-            // Ocultar resultados si existen
-            const resultContainer = document.getElementById('resultContainer');
-            if (resultContainer) {
-                resultContainer.style.display = 'none';
-            }
-        });
-    }
-
-    // Manejar envío del formulario
-    if (buscarUsuarioForm) {
-        buscarUsuarioForm.addEventListener('submit', function(e) {
-            if (rutInput.value && !validateRUT(rutInput.value)) {
-                e.preventDefault();
-                showNotification('Por favor, ingrese un RUT válido', 'error');
-                return;
-            }
-
-            // Mostrar indicador de carga
-            if (loadingIndicator) {
-                loadingIndicator.style.display = 'block';
-            }
-
-            // Deshabilitar botón de búsqueda
-            btnBuscar.disabled = true;
-            btnBuscar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Buscando...';
-        });
+        btnLimpiar.addEventListener('click', limpiarBusqueda);
     }
 
     // Toggle para editar usuario
-    if (btnEditarUsuario && editarUsuarioForm && usuarioInfo) {
-        btnEditarUsuario.addEventListener('click', function() {
+    if (btnEditarContacto && editarUsuarioForm && usuarioInfo) {
+        btnEditarContacto.addEventListener('click', function() {
             usuarioInfo.style.display = 'none';
             editarUsuarioForm.style.display = 'block';
-            btnEditarUsuario.style.display = 'none';
+            btnEditarContacto.style.display = 'none';
         });
     }
 
@@ -721,41 +706,33 @@ document.addEventListener('DOMContentLoaded', function() {
         btnCancelarEdicion.addEventListener('click', function() {
             editarUsuarioForm.style.display = 'none';
             usuarioInfo.style.display = 'block';
-            btnEditarUsuario.style.display = 'inline-block';
+            btnEditarContacto.style.display = 'inline-block';
         });
     }
 
-    // Buscar otro RUTUsuarioForm.style.display = 'none';
-            usuarioInfo.style.display = 'block';
-            btnEditarUsuario.style.display = 'inline-block';
-        });
+    // Enfocar input al cargar
+    if (rutInput) {
+        rutInput.focus();
     }
-
-    // Toggle vista completa
-    if (btnVerCompleto && usuarioInfoCompleto && usuarioInfo) {
-        btnVerCompleto.addEventListener('click', function() {
-            if (usuarioInfoCompleto.style.display === 'none') {
-                usuarioInfoCompleto.style.display = 'block';
-                usuarioInfo.style.display = 'none';
-                btnVerCompleto.innerHTML = '<i class="fas fa-compress me-1"></i> Vista Normal';
-            } else {
-                usuarioInfoCompleto.style.display = 'none';
-                usuarioInfo.style.display = 'block';
-                btnVerCompleto.innerHTML = '<i class="fas fa-expand me-1"></i> Ver Completo';
-            }
-        });
-    }
-
 });
 
-// Función para mostrar notificaciones (simplificada)
-function showNotification(message, type = 'info') {
-    // Mostrar alerta simple en lugar de toast
-    if (type === 'error') {
-        alert('Error: ' + message);
-    } else {
-        console.log(message);
+// Función para limpiar búsqueda
+function limpiarBusqueda() {
+    const rutInput = document.getElementById('rut');
+    if (rutInput) {
+        rutInput.value = '';
+        rutInput.focus();
     }
+    
+    // Ocultar tarjeta de usuario si existe
+    const usuarioCard = document.getElementById('usuarioCard');
+    if (usuarioCard) {
+        usuarioCard.remove();
+    }
+    
+    // Limpiar URL
+    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    window.history.pushState({path: newUrl}, '', newUrl);
 }
 
 // Función para filtrar solicitudes
@@ -765,15 +742,20 @@ function filtrarSolicitudes(estado) {
     
     // Actualizar botones activos
     buttons.forEach(btn => {
-        btn.classList.remove('btn-primary', 'btn-outline-primary', 'btn-outline-secondary', 'btn-outline-success');
-        if (btn.textContent.trim() === 'Todas' && estado === '') {
-            btn.classList.add('btn-primary');
-        } else if (btn.textContent.trim() === 'Pendientes' && estado === 'Pendiente') {
-            btn.classList.add('btn-primary');
-        } else if (btn.textContent.trim() === 'Completadas' && estado === 'Completado') {
-            btn.classList.add('btn-success');
+        btn.classList.remove('btn-outline-secondary', 'btn-outline-warning', 'btn-outline-success', 'active');
+        
+        if ((btn.textContent.includes('Todas') && estado === '') ||
+            (btn.textContent.includes('Pendientes') && estado === 'Pendiente') ||
+            (btn.textContent.includes('Completadas') && estado === 'Completado')) {
+            btn.classList.add('active', 'btn-outline-secondary');
         } else {
-            btn.classList.add('btn-outline-secondary');
+            if (btn.textContent.includes('Pendientes')) {
+                btn.classList.add('btn-outline-warning');
+            } else if (btn.textContent.includes('Completadas')) {
+                btn.classList.add('btn-outline-success');
+            } else {
+                btn.classList.add('btn-outline-secondary');
+            }
         }
     });
     
@@ -786,15 +768,76 @@ function filtrarSolicitudes(estado) {
             row.style.display = 'none';
         }
     });
+    
+    // Mostrar mensaje si no hay resultados
+    const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+    const tbody = document.getElementById('solicitudesTableBody');
+    
+    // Remover mensaje previo
+    const noResultsMsg = tbody.querySelector('.no-results-message');
+    if (noResultsMsg) {
+        noResultsMsg.remove();
+    }
+    
+    if (visibleRows.length === 0 && estado !== '') {
+        const noResultsRow = document.createElement('tr');
+        noResultsRow.className = 'no-results-message';
+        noResultsRow.innerHTML = `
+            <td colspan="6" class="text-center py-4 text-muted">
+                <i class="fas fa-search me-2"></i>
+                No se encontraron solicitudes con estado "${estado}"
+            </td>
+        `;
+        tbody.appendChild(noResultsRow);
+    }
 }
 
-// Función simplificada para ver detalle rápido
-function verDetalleRapido(solicitudId) {
-    // Redirigir directamente a la página de detalles
-    window.location.href = `/solicitudes/${solicitudId}`;
+// Función para mostrar notificaciones
+function showNotification(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Inicializar y mostrar toast
+    if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    } else {
+        // Fallback si Bootstrap no está disponible
+        setTimeout(() => {
+            toast.remove();
+        }, 5000);
+    }
 }
 
-// Atajos de teclado simplificados
+// Crear contenedor de toasts si no existe
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+    container.style.zIndex = '9999';
+    document.body.appendChild(container);
+    return container;
+}
+
+// Atajos de teclado
 document.addEventListener('keydown', function(e) {
     // Ctrl + F para enfocar búsqueda
     if (e.ctrlKey && e.key === 'f') {
@@ -806,11 +849,17 @@ document.addEventListener('keydown', function(e) {
         }
     }
     
-    // Escape para cancelar edición
+    // Escape para limpiar búsqueda
     if (e.key === 'Escape') {
-        const btnCancelarEdicion = document.getElementById('btnCancelarEdicion');
-        if (btnCancelarEdicion && btnCancelarEdicion.offsetParent !== null) {
-            btnCancelarEdicion.click();
+        limpiarBusqueda();
+    }
+    
+    // Ctrl + N para nueva solicitud (si hay usuario)
+    if (e.ctrlKey && e.key === 'n' && document.getElementById('usuarioCard')) {
+        e.preventDefault();
+        const nuevaSolicitudBtn = document.querySelector('a[href*="solicitudes.create"]');
+        if (nuevaSolicitudBtn) {
+            window.location.href = nuevaSolicitudBtn.href;
         }
     }
 });

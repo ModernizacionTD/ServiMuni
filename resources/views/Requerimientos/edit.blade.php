@@ -5,6 +5,8 @@
 @section('page-title', 'Editar Requerimiento')
 
 @section('content')
+<link rel="stylesheet" href="{{ asset('css/form.css') }}">
+
 <div class="card">
     <div class="card-header">
         <h2 class="card-title"><i class="fas fa-clipboard-list me-2"></i>Editar Requerimiento</h2>

@@ -1,45 +1,44 @@
-/* Estilos para la tabla y filtros */
-.header-actions {
+/* ===== HEADER.CSS - Sin conflictos ===== */
+.header-view-container .header-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
 }
 
-.card-title {
+.header-view-container .header-card-title {
     margin: 0;
     display: flex;
     align-items: center;
 }
 
-.header-filters {
+.header-view-container .header-filters {
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
 }
 
-.search-box {
+.header-view-container .header-search-box {
     position: relative;
     max-width: 300px;
     width: 100%;
 }
 
-.search-box i {
+.header-view-container .header-search-box i {
     position: absolute;
     left: 10px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-light);
+    color: var(--text-light, #64748b);
 }
 
-.search-box input {
+.header-view-container .header-search-box input {
     padding-left: 35px;
     border-radius: 20px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color, #e2e8f0);
 }
 
-/* Estilos de badges */
-.badge {
+.header-view-container .header-badge {
     padding: 6px 10px;
     border-radius: 20px;
     font-weight: 500;
@@ -47,38 +46,42 @@
     text-transform: capitalize;
 }
 
-.bg-danger {
+.header-view-container .header-bg-danger {
     background-color: #ef4444;
     color: white;
 }
 
-.bg-primary {
+.header-view-container .header-bg-primary {
     background-color: #2563eb;
     color: white;
 }
 
-.bg-success {
+.header-view-container .header-bg-success {
     background-color: #10b981;
     color: white;
 }
 
-.bg-secondary {
+.header-view-container .header-bg-secondary {
     background-color: #6c757d;
     color: white;
 }
-.bg-warning {
+
+.header-view-container .header-bg-warning {
     background-color: #f59e0b;
     color: white;
 }
-.bg-info {
+
+.header-view-container .header-bg-info {
     background-color: #3b82f6;
     color: white;
 }
-.bg-light {
+
+.header-view-container .header-bg-light {
     background-color: #f8f9fa;
     color: #212529;
 }
-.bg-dark {
+
+.header-view-container .header-bg-dark {
     background-color: #212529;
     color: white;
 }

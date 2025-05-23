@@ -5,290 +5,294 @@
 @section('page-title', 'Gestión de Usuarios')
 
 @section('content')
+<div class="table-view-container filter-view-container">
+    <link rel="stylesheet" href="{{ asset('css/tabla.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/filtros.css') }}">
 
-<link rel="stylesheet" href="{{ asset('css/tabla.css') }}">
-<link rel="stylesheet" href="{{ asset('css/filtros.css') }}">
-
-
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="card-title">Lista de Usuarios</h3>
-        <a href="{{ route('usuarios.create') }}" class="btn btn-add">
-            <i class="fas fa-plus"></i> Nuevo Usuario
-        </a>
-    </div>
-    <!-- Barra de filtros horizontal -->
-    <div class="filters-bar">
-        <div class="filters-container">
-            <!-- Búsqueda -->
-            <div class="filter-item search-filter">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Buscar usuario...">
+    <div class="card">
+        <div class="card-header filter-card-header">
+            <h3 class="card-title filter-card-title">
+                <i class="fas fa-users me-2"></i>Lista de Usuarios
+            </h3>
+            <a href="{{ route('usuarios.create') }}" class="btn btn-add filter-add-btn">
+                <i class="fas fa-plus"></i> Nuevo Usuario
+            </a>
+        </div>
+        
+        <!-- Barra de filtros horizontal -->
+        <div class="filters-bar">
+            <div class="filters-container">
+                <!-- Búsqueda -->
+                <div class="filter-item search-filter">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" class="form-control filter-search-input" placeholder="Buscar usuario...">
+                    </div>
+                </div>
+                
+                <!-- Filtro por tipo de persona -->
+                <div class="filter-item">
+                    <select id="tipoPersonaFilter" class="form-select filter-select">
+                        <option value="">Todos los tipos</option>
+                        <option value="Natural">Persona Natural</option>
+                        <option value="Jurídica">Persona Jurídica</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por género -->
+                <div class="filter-item">
+                    <select id="generoFilter" class="form-select filter-select">
+                        <option value="">Todos los géneros</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                        <option value="Transmasculino">Transmasculino</option>
+                        <option value="Transfemenino">Transfemenino</option>
+                        <option value="No decir">Prefiero no decir</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por nombre social -->
+                <div class="filter-item">
+                    <select id="nombreSocialFilter" class="form-select filter-select">
+                        <option value="">Nombre social</option>
+                        <option value="Sí">Usa nombre social</option>
+                        <option value="No">No usa nombre social</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por rango de edad -->
+                <div class="filter-item">
+                    <select id="rangoEdadFilter" class="form-select filter-select">
+                        <option value="">Filtrar por edad</option>
+                        <option value="0-17">Menor de edad (0-17)</option>
+                        <option value="18-30">Joven adulto (18-30)</option>
+                        <option value="31-50">Adulto (31-50)</option>
+                        <option value="51-65">Adulto mayor (51-65)</option>
+                        <option value="66-150">Tercera edad (66+)</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por dominio de email -->
+                <div class="filter-item">
+                    <select id="dominioEmailFilter" class="form-select filter-select">
+                        <option value="">Filtrar por dominio</option>
+                        <!-- Se llenarán dinámicamente -->
+                    </select>
+                </div>
+                
+                <!-- Botón reset -->
+                <div class="filter-item">
+                    <button type="button" class="btn btn-outline-secondary filter-reset-btn" id="clearFiltersBtn">
+                        <i class="fas fa-sync-alt"></i> Restablecer filtros
+                    </button>
                 </div>
             </div>
             
-            <!-- Filtro por tipo de persona -->
-            <div class="filter-item">
-                <select id="tipoPersonaFilter" class="form-select">
-                    <option value="">Todos los tipos</option>
-                    <option value="Natural">Persona Natural</option>
-                    <option value="Jurídica">Persona Jurídica</option>
-                </select>
-            </div>
-            
-            <!-- Filtro por género -->
-            <div class="filter-item">
-                <select id="generoFilter" class="form-select">
-                    <option value="">Todos los géneros</option>
-                    <option value="Masculino">Masculino</option>
-                    <option value="Femenino">Femenino</option>
-                    <option value="Transmasculino">Transmasculino</option>
-                    <option value="Transfemenino">Transfemenino</option>
-                    <option value="No decir">Prefiero no decir</option>
-                </select>
-            </div>
-            
-            <!-- Filtro por nombre social -->
-            <div class="filter-item">
-                <select id="nombreSocialFilter" class="form-select">
-                    <option value="">Nombre social</option>
-                    <option value="Sí">Usa nombre social</option>
-                    <option value="No">No usa nombre social</option>
-                </select>
-            </div>
-            
-            <!-- Filtro por rango de edad -->
-            <div class="filter-item">
-                <select id="rangoEdadFilter" class="form-select">
-                    <option value="">Filtrar por edad</option>
-                    <option value="0-17">Menor de edad (0-17)</option>
-                    <option value="18-30">Joven adulto (18-30)</option>
-                    <option value="31-50">Adulto (31-50)</option>
-                    <option value="51-65">Adulto mayor (51-65)</option>
-                    <option value="66-150">Tercera edad (66+)</option>
-                </select>
-            </div>
-            
-            <!-- Filtro por dominio de email -->
-            <div class="filter-item">
-                <select id="dominioEmailFilter" class="form-select">
-                    <option value="">Filtrar por dominio</option>
-                    <!-- Se llenarán dinámicamente -->
-                </select>
-            </div>
-            
-            <!-- Botón reset -->
-            <div class="filter-item">
-                <button type="button" class="btn btn-outline-secondary" id="clearFiltersBtn">
-                    <i class="fas fa-sync-alt"></i> Restablecer filtros
-                </button>
-            </div>
+            <!-- Chips de filtros activos -->
+            <div class="active-filters-chips" id="activeFiltersContainer"></div>
         </div>
-        <!-- Chips de filtros activos -->
-        <div class="active-filters-chips" id="activeFiltersContainer"></div>
-    </div>
-    
-    <div class="card-body">
-        @if(session('success'))
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> {{ session('success') }}
-            </div>
-        @endif
         
-        @if(session('error'))
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
-            </div>
-        @endif
+        <div class="card-body">
+            @if(session('success'))
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> {{ session('success') }}
+                </div>
+            @endif
+            
+            @if(session('error'))
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
+                </div>
+            @endif
 
-        
-        <div class="table-responsive">
-            <table id="usuariosTable" class="table">
-                <thead>
-                    <tr>
-                        <th width="12%">RUT</th>
-                        <th width="10%">Persona</th>
-                        <th width="15%">Nombre</th>
-                        <th width="15%">Apellidos</th>
-                        <th width="18%">Email</th>
-                        <th width="12%">Teléfono</th>
-                        <th width="15%">Dirección</th>
-                        <th width="13%">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($usuarios as $usuario)
-                        <tr class="user-row" 
-                            data-tipo-persona="{{ $usuario['tipo_persona'] }}"
-                            data-genero="{{ $usuario['genero'] ?? '' }}"
-                            data-uso-ns="{{ $usuario['uso_ns'] ?? 'No' }}"
-                            data-fecha-nacimiento="{{ $usuario['fecha_nacimiento'] ?? '' }}"
-                            data-email-domain="{{ $usuario['email'] ? explode('@', $usuario['email'])[1] ?? '' : '' }}">
-                            <td><strong>{{ $usuario['rut'] }}</strong></td>
-                            <td>
-                                <span class="persona-badge {{ strtolower($usuario['tipo_persona']) == 'natural' ? 'persona-natural' : 'persona-juridica' }}">
-                                    {{ $usuario['tipo_persona'] }}
-                                </span>
-                            </td>
-                            <td>{{ $usuario['nombre'] }}</td>
-                            <td>{{ $usuario['apellidos'] }}</td>
-                            <td>
-                                <a href="mailto:{{ $usuario['email'] }}" class="email-link">
-                                    <i class="fas fa-envelope"></i>
-                                    {{ $usuario['email'] }}
-                                </a>
-                            </td>
-                            <td>
-                                <a href="tel:{{ $usuario['telefono'] }}" class="phone-link">
-                                    <i class="fas fa-phone"></i>
-                                    {{ $usuario['telefono'] }}
-                                </a>
-                            </td>
-                            <td class="address-cell">{{ $usuario['direccion'] }}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button type="button" class="btn btn-sm btn-info view-details" title="Ver detalles" 
-                                        data-rut="{{ $usuario['rut'] }}"
-                                        data-nombre="{{ $usuario['nombre'] }}"
-                                        data-apellidos="{{ $usuario['apellidos'] }}"
-                                        data-tipo="{{ $usuario['tipo_persona'] }}"
-                                        data-uso-ns="{{ $usuario['uso_ns'] ?? 'No' }}"
-                                        data-nombre-social="{{ $usuario['nombre_social'] ?? 'N/A' }}"
-                                        data-nacimiento="{{ $usuario['fecha_nacimiento'] ?? '' }}"
-                                        data-genero="{{ $usuario['genero'] ?? 'N/A' }}"
-                                        data-telefono="{{ $usuario['telefono'] }}"
-                                        data-telefono2="{{ $usuario['telefono_2'] ?? 'N/A' }}"
-                                        data-email="{{ $usuario['email'] }}"
-                                        data-email2="{{ $usuario['email_2'] ?? 'N/A' }}"
-                                        data-direccion="{{ $usuario['direccion'] }}">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    
-                                    <a href="{{ route('usuarios.edit', $usuario['rut']) }}" class="btn btn-sm btn-primary" title="Editar usuario">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    
-                                    <button type="button" class="btn btn-sm btn-danger" title="Eliminar" 
-                                        onclick="confirmarEliminacion('{{ $usuario['rut'] }}', '{{ $usuario['nombre'] }} {{ $usuario['apellidos'] }}')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    
-                                    <form id="delete-form-{{ $usuario['rut'] }}" action="{{ route('usuarios.destroy', $usuario['rut']) }}" method="POST" style="display: none;">
-                                        @csrf
-                                        @method('DELETE')
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
+            <div class="table-responsive">
+                <table id="usuariosTable" class="table data-table">
+                    <thead>
                         <tr>
-                            <td colspan="8">
-                                <div class="empty-state">
-                                    <i class="fas fa-users"></i>
-                                    <p class="empty-state-text">No hay usuarios registrados en el sistema</p>
-                                    <a href="{{ route('usuarios.create') }}" class="btn btn-primary">
-                                        <i class="fas fa-plus"></i> Añadir Usuario
-                                    </a>
-                                </div>
-                            </td>
+                            <th width="12%">RUT</th>
+                            <th width="10%">Persona</th>
+                            <th width="15%">Nombre</th>
+                            <th width="15%">Apellidos</th>
+                            <th width="18%">Email</th>
+                            <th width="12%">Teléfono</th>
+                            <th width="15%">Dirección</th>
+                            <th width="13%">Acciones</th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="pagination-container mt-3">
-            <div class="d-flex justify-content-between align-items-center">
+                    </thead>
+                    <tbody>
+                        @forelse($usuarios as $usuario)
+                            <tr class="user-row" 
+                                data-tipo-persona="{{ $usuario['tipo_persona'] }}"
+                                data-genero="{{ $usuario['genero'] ?? '' }}"
+                                data-uso-ns="{{ $usuario['uso_ns'] ?? 'No' }}"
+                                data-fecha-nacimiento="{{ $usuario['fecha_nacimiento'] ?? '' }}"
+                                data-email-domain="{{ $usuario['email'] ? explode('@', $usuario['email'])[1] ?? '' : '' }}">
+                                <td><strong>{{ $usuario['rut'] }}</strong></td>
+                                <td>
+                                    <span class="persona-badge {{ strtolower($usuario['tipo_persona']) == 'natural' ? 'persona-natural' : 'persona-juridica' }}">
+                                        {{ $usuario['tipo_persona'] }}
+                                    </span>
+                                </td>
+                                <td>{{ $usuario['nombre'] }}</td>
+                                <td>{{ $usuario['apellidos'] }}</td>
+                                <td>
+                                    <a href="mailto:{{ $usuario['email'] }}" class="contact-link">
+                                        <i class="fas fa-envelope"></i>
+                                        {{ $usuario['email'] }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="tel:{{ $usuario['telefono'] }}" class="contact-link">
+                                        <i class="fas fa-phone"></i>
+                                        {{ $usuario['telefono'] }}
+                                    </a>
+                                </td>
+                                <td class="address-cell">{{ $usuario['direccion'] }}</td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button type="button" class="btn btn-sm btn-info action-btn btn-view view-details" title="Ver detalles" 
+                                            data-rut="{{ $usuario['rut'] }}"
+                                            data-nombre="{{ $usuario['nombre'] }}"
+                                            data-apellidos="{{ $usuario['apellidos'] }}"
+                                            data-tipo="{{ $usuario['tipo_persona'] }}"
+                                            data-uso-ns="{{ $usuario['uso_ns'] ?? 'No' }}"
+                                            data-nombre-social="{{ $usuario['nombre_social'] ?? 'N/A' }}"
+                                            data-nacimiento="{{ $usuario['fecha_nacimiento'] ?? '' }}"
+                                            data-genero="{{ $usuario['genero'] ?? 'N/A' }}"
+                                            data-telefono="{{ $usuario['telefono'] }}"
+                                            data-telefono2="{{ $usuario['telefono_2'] ?? 'N/A' }}"
+                                            data-email="{{ $usuario['email'] }}"
+                                            data-email2="{{ $usuario['email_2'] ?? 'N/A' }}"
+                                            data-direccion="{{ $usuario['direccion'] }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        
+                                        <a href="{{ route('usuarios.edit', $usuario['rut']) }}" class="btn btn-sm btn-primary action-btn btn-edit" title="Editar usuario">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        
+                                        <button type="button" class="btn btn-sm btn-danger action-btn btn-delete" title="Eliminar" 
+                                            onclick="confirmarEliminacion('{{ $usuario['rut'] }}', '{{ $usuario['nombre'] }} {{ $usuario['apellidos'] }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        
+                                        <form id="delete-form-{{ $usuario['rut'] }}" action="{{ route('usuarios.destroy', $usuario['rut']) }}" method="POST" style="display: none;">
+                                            @csrf
+                                            @method('DELETE')
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8">
+                                    <div class="table-empty-state">
+                                        <i class="fas fa-users"></i>
+                                        <p class="table-empty-state-text">No hay usuarios registrados en el sistema</p>
+                                        <a href="{{ route('usuarios.create') }}" class="btn btn-primary">
+                                            <i class="fas fa-plus"></i> Añadir Usuario
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-pagination">
                 <div class="pagination-info">
                     Mostrando <span class="fw-bold" id="resultCount">{{ count($usuarios) }}</span> de <span class="fw-bold">{{ count($usuarios) }}</span> usuarios
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal de detalles del usuario -->
-<div class="user-details-panel" id="userDetailsPanel">
-    <div class="user-details-modal">
-
-        
-        <div class="user-profile-header">
-            <div class="user-avatar">
-                <span id="userInitials"></span>
+    <!-- Modal de detalles del usuario -->
+    <div class="user-details-panel details-panel" id="userDetailsPanel">
+        <div class="user-details-modal">
+            <div class="user-details-header">
+                <h3><i class="fas fa-user"></i> Detalles del Usuario</h3>
+                <button type="button" class="detail-close-btn" id="closePanelBtn">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div class="user-info">
-                <h3 id="userName"></h3>
-                <p id="userType" class="user-type"></p>
+            
+            <div class="user-profile-header">
+                <div class="user-avatar">
+                    <span id="userInitials"></span>
+                </div>
+                <div class="user-info">
+                    <h3 id="userName"></h3>
+                    <p id="userType" class="user-type"></p>
+                </div>
             </div>
-        </div>
-        
-        <div class="user-details-container">
-            <div class="details-section">
-                <h4 class="section-title"><i class="fas fa-id-card"></i> Información Personal</h4>
-                <div class="details-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">RUT</span>
-                        <span class="detail-value" id="userRut"></span>
+            
+            <div class="user-details-container">
+                <div class="details-section">
+                    <h4 class="section-title"><i class="fas fa-id-card"></i> Información Personal</h4>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">RUT</span>
+                            <span class="detail-value" id="userRut"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Fecha de Nacimiento</span>
+                            <span class="detail-value" id="userBirthdate"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Género</span>
+                            <span class="detail-value" id="userGender"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Uso de Nombre Social</span>
+                            <span class="detail-value" id="userUseNS"></span>
+                        </div>
+                        <div class="detail-item detail-full-width">
+                            <span class="detail-label">Nombre Social</span>
+                            <span class="detail-value" id="userSocialName"></span>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Fecha de Nacimiento</span>
-                        <span class="detail-value" id="userBirthdate"></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Género</span>
-                        <span class="detail-value" id="userGender"></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Uso de Nombre Social</span>
-                        <span class="detail-value" id="userUseNS"></span>
-                    </div>
-                    <div class="detail-item full-width">
-                        <span class="detail-label">Nombre Social</span>
-                        <span class="detail-value" id="userSocialName"></span>
+                </div>
+                
+                <div class="details-section">
+                    <h4 class="section-title"><i class="fas fa-phone-alt"></i> Información de Contacto</h4>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Email Principal</span>
+                            <a class="detail-value contact-link" id="userEmail"></a>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Email Alternativo</span>
+                            <a class="detail-value contact-link" id="userEmail2"></a>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Teléfono Principal</span>
+                            <a class="detail-value contact-link" id="userPhone"></a>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Teléfono Alternativo</span>
+                            <a class="detail-value contact-link" id="userPhone2"></a>
+                        </div>
+                        <div class="detail-item detail-full-width">
+                            <span class="detail-label">Dirección</span>
+                            <span class="detail-value" id="userAddress"></span>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div class="details-section">
-                <h4 class="section-title"><i class="fas fa-phone-alt"></i> Información de Contacto</h4>
-                <div class="details-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Email Principal</span>
-                        <a class="detail-value email-link" id="userEmail"></a>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Email Alternativo</span>
-                        <a class="detail-value email-link" id="userEmail2"></a>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Teléfono Principal</span>
-                        <a class="detail-value phone-link" id="userPhone"></a>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Teléfono Alternativo</span>
-                        <a class="detail-value phone-link" id="userPhone2"></a>
-                    </div>
-                    <div class="detail-item full-width">
-                        <span class="detail-label">Dirección</span>
-                        <span class="detail-value" id="userAddress"></span>
-                    </div>
-                </div>
+            <div class="panel-actions">
+                <button type="button" class="btn btn-secondary" id="closePanelBtn2">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
+                <a href="#" id="editUserBtn" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Editar Usuario
+                </a>
             </div>
-        </div>
-        
-        <div class="details-actions">
-            <button type="button" class="btn btn-secondary" id="closePanelBtn">
-                <i class="fas fa-times"></i> Cerrar
-            </button>
-            <a href="#" id="editUserBtn" class="btn btn-primary">
-                <i class="fas fa-edit"></i> Editar Usuario
-            </a>
         </div>
     </div>
 </div>
-
-
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -500,8 +504,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== FUNCIONALIDAD DEL MODAL DE DETALLES =====
     const userDetailsPanel = document.getElementById('userDetailsPanel');
     const viewButtons = document.querySelectorAll('.view-details');
-    const closeDetailsBtn = document.getElementById('closeDetailsBtn');
     const closePanelBtn = document.getElementById('closePanelBtn');
+    const closePanelBtn2 = document.getElementById('closePanelBtn2');
     
     function showUserDetails() {
         userDetailsPanel.classList.add('show');
@@ -589,12 +593,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Cerrar panel de detalles
-    if (closeDetailsBtn) {
-        closeDetailsBtn.addEventListener('click', hideUserDetails);
-    }
-    
     if (closePanelBtn) {
         closePanelBtn.addEventListener('click', hideUserDetails);
+    }
+    
+    if (closePanelBtn2) {
+        closePanelBtn2.addEventListener('click', hideUserDetails);
     }
     
     // Cerrar al hacer clic en el fondo del modal
@@ -610,14 +614,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape' && userDetailsPanel.classList.contains('show')) {
             hideUserDetails();
-        }
-    });
-    
-    // Inicializar tooltips
-    const tooltipTriggerList = document.querySelectorAll('[title]');
-    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-            new bootstrap.Tooltip(tooltipTriggerEl);
         }
     });
 });

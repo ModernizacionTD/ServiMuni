@@ -1,59 +1,43 @@
-/* ===== TABLA.CSS - Estilos generales para todas las tablas del sistema ===== */
+/* ===== TABLA.CSS - Estilos específicos para tablas de datos ===== */
 
-/* Variables CSS básicas para mantener consistencia */
-:root {
-    --primary-color: #3867d6;
-    --secondary-color: #8795a1;
-    --success-color: #47d847;
-    --danger-color: #f85353;
-    --border-color: #dce1e9;
-    --bg-white: #ffffff;
-    --bg-light: #f8f9fa;
-    --text-color: #2c3e50;
-    --text-light: #6c757d;
-    --text-muted: #8795a1;
-    --border-radius: 8px;
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.07);
-}
-
-.form-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(56, 103, 214, 0.15);
-    outline: none;
-}
-
-/* ===== ESTILOS DE BOTONES ===== */
-/* Botones con iconos */
-.btn i {
-    margin-right: 8px;
-}
-
-/* Botones de solo icono en acciones */
-.action-buttons .btn i {
-    margin-right: 0;
+/* Contenedor específico para vistas con tablas */
+.table-view-container {
+    /* Variables específicas para tablas (solo si no están definidas) */
+    --table-primary-color: var(--primary-color, #3867d6);
+    --table-secondary-color: var(--secondary-color, #8795a1);
+    --table-success-color: var(--success-color, #47d847);
+    --table-danger-color: var(--danger-color, #f85353);
+    --table-border-color: var(--border-color, #dce1e9);
+    --table-bg-white: var(--bg-white, #ffffff);
+    --table-bg-light: var(--bg-light, #f8f9fa);
+    --table-text-color: var(--text-color, #2c3e50);
+    --table-text-light: var(--text-light, #6c757d);
+    --table-text-muted: var(--text-muted, #8795a1);
+    --table-border-radius: var(--border-radius, 8px);
+    --table-shadow-sm: var(--shadow-sm, 0 2px 4px rgba(0, 0, 0, 0.05));
+    --table-shadow-md: var(--shadow-md, 0 5px 15px rgba(0, 0, 0, 0.07));
 }
 
 /* ===== TABLA DE DATOS ===== */
-.table {
+.table-view-container .data-table {
     width: 100%;
     margin-bottom: 0;
     border-collapse: separate;
     border-spacing: 0;
-    background-color: var(--bg-white);
-    border-radius: var(--border-radius);
+    background-color: var(--table-bg-white);
+    border-radius: var(--table-border-radius);
     overflow: hidden;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--table-shadow-sm);
 }
 
 /* Encabezados de tabla */
-.table th {
+.table-view-container .data-table th {
     font-weight: 600;
     font-size: 0.85rem;
-    color: var(--text-color);
+    color: var(--table-text-color);
     padding: 16px 12px;
     border-top: none;
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 2px solid var(--table-border-color);
     text-align: left;
     white-space: nowrap;
     position: sticky;
@@ -61,18 +45,19 @@
     z-index: 10;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    background-color: var(--table-bg-light);
 }
 
-.table th:first-child {
-    border-top-left-radius: var(--border-radius);
+.table-view-container .data-table th:first-child {
+    border-top-left-radius: var(--table-border-radius);
 }
 
-.table th:last-child {
-    border-top-right-radius: var(--border-radius);
+.table-view-container .data-table th:last-child {
+    border-top-right-radius: var(--table-border-radius);
 }
 
 /* Celdas de la tabla */
-.table td {
+.table-view-container .data-table td {
     padding: 14px 12px;
     vertical-align: middle;
     border-bottom: 1px solid #f1f3f4;
@@ -80,28 +65,28 @@
 }
 
 /* Hover en filas */
-.table tbody tr {
+.table-view-container .data-table tbody tr {
     transition: all 0.2s ease;
     cursor: pointer;
 }
 
-.table tbody tr:hover {
+.table-view-container .data-table tbody tr:hover {
     background-color: rgba(56, 103, 214, 0.03);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* Alternating row colors */
-.table tbody tr:nth-child(even) {
+.table-view-container .data-table tbody tr:nth-child(even) {
     background-color: rgba(248, 249, 250, 0.5);
 }
 
-.table tbody tr:nth-child(even):hover {
+.table-view-container .data-table tbody tr:nth-child(even):hover {
     background-color: rgba(56, 103, 214, 0.03);
 }
 
 /* Celdas con texto largo */
-.address-cell {
+.table-view-container .address-cell {
     max-width: 200px;
     white-space: nowrap;
     overflow: hidden;
@@ -109,8 +94,8 @@
 }
 
 /* Enlaces en tablas */
-.email-link, .phone-link {
-    color: var(--primary-color);
+.table-view-container .contact-link {
+    color: var(--table-primary-color);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
@@ -121,27 +106,27 @@
     font-weight: 500;
 }
 
-.email-link:hover, .phone-link:hover {
+.table-view-container .contact-link:hover {
     background-color: rgba(56, 103, 214, 0.1);
     color: #2c5aa0;
     text-decoration: none;
 }
 
 /* Estilos para celdas específicas */
-.table td:first-child {
+.table-view-container .data-table td:first-child {
     font-weight: 600;
-    color: var(--text-color);
+    color: var(--table-text-color);
 }
 
-.table td:nth-child(2) {
+.table-view-container .data-table td:nth-child(2) {
     font-size: 0.8rem;
     text-transform: uppercase;
     font-weight: 500;
-    color: var(--text-muted);
+    color: var(--table-text-muted);
 }
 
 /* Badge para tipo de persona */
-.persona-badge {
+.table-view-container .persona-badge {
     display: inline-block;
     padding: 4px 8px;
     border-radius: 12px;
@@ -151,41 +136,41 @@
     letter-spacing: 0.5px;
 }
 
-.persona-natural {
+.table-view-container .persona-natural {
     background-color: #e3f2fd;
     color: #1565c0;
 }
 
-.persona-juridica {
+.table-view-container .persona-juridica {
     background-color: #f3e5f5;
     color: #7b1fa2;
 }
 
 /* Badges para estados */
-.badge {
+.table-view-container .status-badge {
     font-size: 0.75rem;
     padding: 0.35em 0.65em;
     border-radius: 4px;
     font-weight: 500;
 }
 
-.bg-success {
-    background-color: var(--success-color);
+.table-view-container .status-success {
+    background-color: var(--table-success-color);
     color: white;
 }
 
-.bg-secondary {
-    background-color: var(--secondary-color);
+.table-view-container .status-secondary {
+    background-color: var(--table-secondary-color);
     color: white;
 }
 
-.bg-danger {
-    background-color: var(--danger-color);
+.table-view-container .status-danger {
+    background-color: var(--table-danger-color);
     color: white;
 }
 
 /* Contenedor de botones de acción */
-.action-buttons {
+.table-view-container .table-actions {
     display: flex;
     gap: 6px;
     justify-content: center;
@@ -193,7 +178,7 @@
     align-items: center;
 }
 
-.action-buttons .btn {
+.table-view-container .table-actions .action-btn {
     border-radius: 6px;
     padding: 8px 10px;
     border: none;
@@ -204,50 +189,54 @@
     justify-content: center;
     min-width: 36px;
     height: 36px;
+    text-decoration: none;
 }
 
-.action-buttons .btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.action-buttons .btn-primary:hover {
-    background-color: #2c5aa0;
+.table-view-container .table-actions .action-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(56, 103, 214, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.action-buttons .btn-info {
+.table-view-container .table-actions .btn-view {
     background-color: #17a2b8;
     color: white;
 }
 
-.action-buttons .btn-info:hover {
+.table-view-container .table-actions .btn-view:hover {
     background-color: #138496;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
 }
 
-.action-buttons .btn-danger {
-    background-color: var(--danger-color);
+.table-view-container .table-actions .btn-edit {
+    background-color: var(--table-primary-color);
     color: white;
 }
 
-.action-buttons .btn-danger:hover {
+.table-view-container .table-actions .btn-edit:hover {
+    background-color: #2c5aa0;
+}
+
+.table-view-container .table-actions .btn-delete {
+    background-color: var(--table-danger-color);
+    color: white;
+}
+
+.table-view-container .table-actions .btn-delete:hover {
     background-color: #dc3545;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(248, 83, 83, 0.3);
 }
 
 /* ===== PANELES DE DETALLES GENERALES ===== */
-.details-section {
+.table-view-container .details-panel {
     margin-bottom: 24px;
 }
 
-.section-title {
+.table-view-container .details-section {
+    margin-bottom: 24px;
+}
+
+.table-view-container .section-title {
     font-size: 1rem;
     margin-bottom: 15px;
-    color: var(--text-color);
+    color: var(--table-text-color);
     display: flex;
     align-items: center;
     font-weight: 600;
@@ -255,71 +244,67 @@
     border-bottom: 1px solid #eaedf3;
 }
 
-.section-title i {
-    color: var(--primary-color);
+.table-view-container .section-title i {
+    color: var(--table-primary-color);
     margin-right: 8px;
 }
 
 /* Grid para detalles */
-.details-grid {
+.table-view-container .details-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
 }
 
-.detail-item {
+.table-view-container .detail-item {
     display: flex;
     flex-direction: column;
 }
 
-.full-width {
+.table-view-container .detail-full-width {
     grid-column: 1 / -1;
 }
 
-.detail-label {
+.table-view-container .detail-label {
     font-size: 0.9rem;
-    color: var(--text-light);
+    color: var(--table-text-light);
     margin-bottom: 5px;
     font-weight: 500;
 }
 
-.detail-value {
+.table-view-container .detail-value {
     font-weight: 600;
-    color: var(--text-color);
+    color: var(--table-text-color);
 }
 
 /* Acciones del panel */
-.details-actions {
+.table-view-container .panel-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
     margin-top: 20px;
     padding: 16px 20px;
-    border-top: 1px solid var(--border-color);
-    background-color: var(--bg-light);
+    border-top: 1px solid var(--table-border-color);
+    background-color: var(--table-bg-light);
 }
 
 /* ===== PAGINACIÓN Y ESTADO VACÍO ===== */
-.pagination-container {
+.table-view-container .table-pagination {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 16px 0;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--table-border-color);
     margin-top: 16px;
 }
 
-.pagination-info {
-    color: var(--text-light);
+.table-view-container .pagination-info {
+    color: var(--table-text-light);
     font-size: 0.9rem;
 }
 
-.pagination {
-    margin: 0;
-}
-
 /* Estado vacío */
-.empty-state {
+.table-view-container .table-empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -327,83 +312,59 @@
     text-align: center;
 }
 
-.empty-state i {
+.table-view-container .table-empty-state i {
     font-size: 3rem;
     color: #e0e0e0;
     margin-bottom: 20px;
 }
 
-.empty-state-text {
+.table-view-container .table-empty-state-text {
     font-size: 1.1rem;
-    color: var(--text-light);
+    color: var(--table-text-light);
     margin-bottom: 20px;
 }
 
 /* ===== RESPONSIVIDAD GENERAL ===== */
 @media (max-width: 992px) {
-    .header-filters {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-    
-    .search-box,
-    .filter-container {
-        max-width: 100%;
-        width: 100%;
-    }
-    
-    #resetFilters {
-        margin-top: 5px;
-        align-self: flex-end;
-    }
-}
-
-@media (max-width: 768px) {
-    .header-actions {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-    
-    .header-actions .btn-primary {
-        align-self: flex-start;
-    }
-    
-    .details-grid {
+    .table-view-container .details-grid {
         grid-template-columns: 1fr;
     }
     
-    .action-buttons {
+    .table-view-container .table-actions {
         flex-wrap: wrap;
         justify-content: center;
     }
     
-    .table-responsive {
+    .table-view-container .data-table {
         font-size: 0.9rem;
     }
 }
 
-@media (max-width: 576px) {
-    .table th,
-    .table td {
+@media (max-width: 768px) {
+    .table-view-container .data-table th,
+    .table-view-container .data-table td {
         padding: 10px 12px;
     }
     
-    .card-header {
-        padding: 16px;
-    }
-    
-    .search-box {
-        max-width: 100%;
-    }
-    
-    .action-buttons {
+    .table-view-container .table-actions {
         gap: 5px;
     }
     
-    .details-actions {
+    .table-view-container .panel-actions {
         flex-direction: column;
         gap: 8px;
+    }
+}
+
+@media (max-width: 576px) {
+    .table-view-container .data-table th,
+    .table-view-container .data-table td {
+        padding: 8px 10px;
+    }
+    
+    .table-view-container .table-actions .action-btn {
+        min-width: 32px;
+        height: 32px;
+        padding: 6px 8px;
     }
 }

@@ -5,310 +5,311 @@
 @section('page-title', 'Gestión de Funcionarios')
 
 @section('content')
+<div class="table-view-container filter-view-container staff-view-container">
+    <link rel="stylesheet" href="{{ asset('css/tabla.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/filtros.css') }}">
 
-<link rel="stylesheet" href="{{ asset('css/tabla.css') }}">
-<link rel="stylesheet" href="{{ asset('css/filtros.css') }}">
-<link rel="stylesheet" href="{{ asset('css/funcionario.css') }}">
-
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="card-title">Lista de Funcionarios</h3>
-        <a href="{{ route('funcionarios.create') }}" class="btn btn-add">
-            <i class="fas fa-plus"></i> Nuevo Funcionario
-        </a>
-    </div>
-    
-    <!-- Barra de filtros horizontal -->
-    <div class="filters-bar">
-        <div class="filters-container">
-            <!-- Búsqueda -->
-            <div class="filter-item search-filter">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Buscar funcionario...">
+    <div class="card">
+        <div class="card-header filter-card-header">
+            <h3 class="card-title filter-card-title">
+                <i class="fas fa-users me-2"></i>Lista de Funcionarios
+            </h3>
+            <a href="{{ route('funcionarios.create') }}" class="btn btn-add filter-add-btn">
+                <i class="fas fa-plus"></i> Nuevo Funcionario
+            </a>
+        </div>
+        
+        <!-- Barra de filtros horizontal -->
+        <div class="filters-bar">
+            <div class="filters-container">
+                <!-- Búsqueda -->
+                <div class="filter-item search-filter">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" class="form-control filter-search-input" placeholder="Buscar funcionario...">
+                    </div>
+                </div>
+                
+                <!-- Filtro por rol -->
+                <div class="filter-item">
+                    <select id="rolFilter" class="form-select filter-select">
+                        <option value="">Todos los roles</option>
+                        <option value="admin">Administrador</option>
+                        <option value="desarrollador">Desarrollador</option>
+                        <option value="orientador">Orientador</option>
+                        <option value="gestor">Gestor</option>
+                        <option value="tecnico">Técnico</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por departamento -->
+                <div class="filter-item">
+                    <select id="departamentoFilter" class="form-select filter-select">
+                        <option value="">Todos los departamentos</option>
+                        @if(isset($departamentos))
+                            @foreach($departamentos as $departamento)
+                                <option value="{{ $departamento['id'] }}">{{ $departamento['nombre'] }}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                
+                <!-- Botón reset -->
+                <div class="filter-item">
+                    <button type="button" class="btn btn-outline-secondary filter-reset-btn" id="clearFiltersBtn">
+                        <i class="fas fa-sync-alt"></i> Restablecer filtros
+                    </button>
                 </div>
             </div>
             
-            <!-- Filtro por rol -->
-            <div class="filter-item">
-                <select id="rolFilter" class="form-select">
-                    <option value="">Todos los roles</option>
-                    <option value="admin">Administrador</option>
-                    <option value="desarrollador">Desarrollador</option>
-                    <option value="orientador">Orientador</option>
-                    <option value="gestor">Gestor</option>
-                    <option value="tecnico">Técnico</option>
-                </select>
-            </div>
-            
-            <!-- Filtro por departamento -->
-            <div class="filter-item">
-                <select id="departamentoFilter" class="form-select">
-                    <option value="">Todos los departamentos</option>
-                    @if(isset($departamentos))
-                        @foreach($departamentos as $departamento)
-                            <option value="{{ $departamento['id'] }}">{{ $departamento['nombre'] }}</option>
-                        @endforeach
-                    @endif
-                </select>
-            </div>
-            
-            <!-- Botón reset -->
-            <div class="filter-item">
-                <button type="button" class="btn btn-outline-secondary" id="clearFiltersBtn">
-                    <i class="fas fa-sync-alt"></i> Restablecer filtros
-                </button>
-            </div>
+            <!-- Chips de filtros activos -->
+            <div class="active-filters-chips" id="activeFiltersContainer"></div>
         </div>
-        <!-- Chips de filtros activos -->
-        <div class="active-filters-chips" id="activeFiltersContainer"></div>
-    </div>
-    
-    <div class="card-body">
-        @if(session('success'))
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> {{ session('success') }}
-            </div>
-        @endif
         
-        @if(session('error'))
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
-            </div>
-        @endif
+        <div class="card-body">
+            @if(session('success'))
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> {{ session('success') }}
+                </div>
+            @endif
+            
+            @if(session('error'))
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
+                </div>
+            @endif
 
-        <div class="table-responsive">
-            <table id="funcionariosTable" class="table">
-                <thead>
-                    <tr>
-                        <th width="8%">ID</th>
-                        <th width="20%">Nombre</th>
-                        <th width="22%">Email</th>
-                        <th width="15%">Departamento</th>
-                        <th width="12%">Rol</th>
-                        <th width="8%">Estado</th>
-                        <th width="15%">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($funcionarios as $funcionario)
-                        <tr class="user-row" 
-                            data-id="{{ $funcionario['id'] }}"
-                            data-nombre="{{ $funcionario['nombre'] }}"
-                            data-email="{{ $funcionario['email'] }}"
-                            data-rol="{{ $funcionario['rol'] }}"
-                            data-departamento-id="{{ $funcionario['departamento_id'] ?? '' }}"
-                            data-es-propio="{{ session('user_id') == $funcionario['id'] ? 'true' : 'false' }}">
-                            <td><strong>{{ $funcionario['id'] }}</strong></td>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div class="user-avatar-small">
-                                        @php
-                                            $nombre = $funcionario['nombre'];
-                                            $palabras = explode(' ', trim($nombre));
-                                            if (count($palabras) === 1) {
-                                                $iniciales = strlen($palabras[0]) >= 2 
-                                                    ? strtoupper(substr($palabras[0], 0, 2))
-                                                    : strtoupper($palabras[0][0] . $palabras[0][0]);
-                                            } else {
-                                                $iniciales = strtoupper($palabras[0][0] . $palabras[1][0]);
-                                            }
-                                        @endphp
-                                        {{ $iniciales }}
+            <div class="table-responsive">
+                <table id="funcionariosTable" class="table data-table">
+                    <thead>
+                        <tr>
+                            <th width="8%">ID</th>
+                            <th width="20%">Nombre</th>
+                            <th width="22%">Email</th>
+                            <th width="15%">Departamento</th>
+                            <th width="12%">Rol</th>
+                            <th width="8%">Estado</th>
+                            <th width="15%">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($funcionarios as $funcionario)
+                            <tr class="staff-user-row" 
+                                data-id="{{ $funcionario['id'] }}"
+                                data-nombre="{{ $funcionario['nombre'] }}"
+                                data-email="{{ $funcionario['email'] }}"
+                                data-rol="{{ $funcionario['rol'] }}"
+                                data-departamento-id="{{ $funcionario['departamento_id'] ?? '' }}"
+                                data-es-propio="{{ session('user_id') == $funcionario['id'] ? 'true' : 'false' }}">
+                                <td><strong>{{ $funcionario['id'] }}</strong></td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div class="user-avatar-small">
+                                            @php
+                                                $nombre = $funcionario['nombre'];
+                                                $palabras = explode(' ', trim($nombre));
+                                                if (count($palabras) === 1) {
+                                                    $iniciales = strlen($palabras[0]) >= 2 
+                                                        ? strtoupper(substr($palabras[0], 0, 2))
+                                                        : strtoupper($palabras[0][0] . $palabras[0][0]);
+                                                } else {
+                                                    $iniciales = strtoupper($palabras[0][0] . $palabras[1][0]);
+                                                }
+                                            @endphp
+                                            {{ $iniciales }}
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div class="user-name">{{ $funcionario['nombre'] }}</div>
+                                            @if(session('user_id') == $funcionario['id'])
+                                                <small class="text-primary" style="font-size: 0.75rem;">
+                                                    <i class="fas fa-user-circle"></i> Tú
+                                                </small>
+                                            @endif
+                                        </div>
                                     </div>
-                                    <div style="flex: 1;">
-                                        <div class="user-name">{{ $funcionario['nombre'] }}</div>
-                                        @if(session('user_id') == $funcionario['id'])
-                                            <small class="text-primary" style="font-size: 0.75rem;">
-                                                <i class="fas fa-user-circle"></i> Tú
-                                            </small>
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <a href="mailto:{{ $funcionario['email'] }}" class="email-link">
-                                    <i class="fas fa-envelope"></i>
-                                    {{ $funcionario['email'] }}
-                                </a>
-                            </td>
-                            <td>
-                                @php
-                                    $departamentoNombre = 'Sin asignar';
-                                    if(isset($funcionario['departamento_id']) && isset($departamentos)) {
-                                        foreach($departamentos as $departamento) {
-                                            if($departamento['id'] == $funcionario['departamento_id']) {
-                                                $departamentoNombre = $departamento['nombre'];
-                                                break;
+                                </td>
+                                <td>
+                                    <a href="mailto:{{ $funcionario['email'] }}" class="staff-email-link contact-link">
+                                        <i class="fas fa-envelope"></i>
+                                        {{ $funcionario['email'] }}
+                                    </a>
+                                </td>
+                                <td>
+                                    @php
+                                        $departamentoNombre = 'Sin asignar';
+                                        if(isset($funcionario['departamento_id']) && isset($departamentos)) {
+                                            foreach($departamentos as $departamento) {
+                                                if($departamento['id'] == $funcionario['departamento_id']) {
+                                                    $departamentoNombre = $departamento['nombre'];
+                                                    break;
+                                                }
                                             }
                                         }
-                                    }
-                                @endphp
-                                <span class="persona-badge persona-natural">{{ $departamentoNombre }}</span>
-                            </td>
-                            <td>
-                                <span class="badge 
-                                      @if($funcionario['rol'] == 'admin') bg-danger
-                                      @elseif($funcionario['rol'] == 'desarrollador') bg-info
-                                      @elseif($funcionario['rol'] == 'orientador') bg-warning
-                                      @elseif($funcionario['rol'] == 'gestor') bg-primary
-                                      @elseif($funcionario['rol'] == 'tecnico') bg-success
-                                      @else bg-secondary @endif">
-                                    {{ ucfirst($funcionario['rol']) }}
-                                </span>
-                            </td>
-                            <td>
-                                @if(session('user_id') == $funcionario['id'])
-                                    <span class="badge bg-primary">
-                                        <i class="fas fa-user-circle"></i> Activo (Tú)
+                                    @endphp
+                                    <span class="persona-badge persona-natural">{{ $departamentoNombre }}</span>
+                                </td>
+                                <td>
+                                    <span class="status-badge 
+                                          @if($funcionario['rol'] == 'admin') status-danger
+                                          @elseif($funcionario['rol'] == 'desarrollador') bg-info
+                                          @elseif($funcionario['rol'] == 'orientador') bg-warning
+                                          @elseif($funcionario['rol'] == 'gestor') bg-primary
+                                          @elseif($funcionario['rol'] == 'tecnico') status-success
+                                          @else status-secondary @endif">
+                                        {{ ucfirst($funcionario['rol']) }}
                                     </span>
-                                @else
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-check-circle"></i> Activo
-                                    </span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button type="button" class="btn btn-sm btn-info view-details" title="Ver detalles" 
-                                        data-id="{{ $funcionario['id'] }}"
-                                        data-email="{{ $funcionario['email'] }}"
-                                        data-nombre="{{ $funcionario['nombre'] }}"
-                                        data-rol="{{ $funcionario['rol'] }}"
-                                        data-departamento-id="{{ $funcionario['departamento_id'] ?? '' }}"
-                                        data-departamento-nombre="{{ $departamentoNombre }}"
-                                        data-es-propio="{{ session('user_id') == $funcionario['id'] ? 'true' : 'false' }}">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    
-                                    <a href="{{ route('funcionarios.edit', $funcionario['id']) }}" class="btn btn-sm btn-primary" title="Editar funcionario">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    
-                                    @if(session('user_id') != $funcionario['id'])
-                                        <button type="button" class="btn btn-sm btn-danger" title="Eliminar funcionario" 
-                                            onclick="confirmarEliminacion('{{ $funcionario['id'] }}', '{{ $funcionario['nombre'] }}')">
-                                            <i class="fas fa-trash"></i>
+                                </td>
+                                <td>
+                                    @if(session('user_id') == $funcionario['id'])
+                                        <span class="status-badge bg-primary">
+                                            <i class="fas fa-user-circle"></i> Activo (Tú)
+                                        </span>
+                                    @else
+                                        <span class="status-badge status-success">
+                                            <i class="fas fa-check-circle"></i> Activo
+                                        </span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="table-actions staff-action-buttons">
+                                        <button type="button" class="btn btn-sm btn-info action-btn btn-view view-details" title="Ver detalles" 
+                                            data-id="{{ $funcionario['id'] }}"
+                                            data-email="{{ $funcionario['email'] }}"
+                                            data-nombre="{{ $funcionario['nombre'] }}"
+                                            data-rol="{{ $funcionario['rol'] }}"
+                                            data-departamento-id="{{ $funcionario['departamento_id'] ?? '' }}"
+                                            data-departamento-nombre="{{ $departamentoNombre }}"
+                                            data-es-propio="{{ session('user_id') == $funcionario['id'] ? 'true' : 'false' }}">
+                                            <i class="fas fa-eye"></i>
                                         </button>
                                         
-                                        <form id="delete-form-{{ $funcionario['id'] }}" action="{{ route('funcionarios.destroy', $funcionario['id']) }}" method="POST" style="display: none;">
-                                            @csrf
-                                            @method('DELETE')
-                                        </form>
-                                    @else
-                                        <button type="button" class="btn btn-sm btn-secondary" title="No puedes eliminar tu propia cuenta" disabled>
-                                            <i class="fas fa-shield-alt"></i>
-                                        </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7">
-                                <div class="empty-state">
-                                    <i class="fas fa-users"></i>
-                                    <p class="empty-state-text">No hay funcionarios registrados en el sistema</p>
-                                    <a href="{{ route('funcionarios.create') }}" class="btn btn-primary">
-                                        <i class="fas fa-plus"></i> Añadir Funcionario
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="pagination-container mt-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="pagination-info">
+                                        <a href="{{ route('funcionarios.edit', $funcionario['id']) }}" class="btn btn-sm btn-primary action-btn btn-edit" title="Editar funcionario">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        
+                                        @if(session('user_id') != $funcionario['id'])
+                                            <button type="button" class="btn btn-sm btn-danger action-btn btn-delete" title="Eliminar funcionario" 
+                                                onclick="confirmarEliminacion('{{ $funcionario['id'] }}', '{{ $funcionario['nombre'] }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            
+                                            <form id="delete-form-{{ $funcionario['id'] }}" action="{{ route('funcionarios.destroy', $funcionario['id']) }}" method="POST" style="display: none;">
+                                                @csrf
+                                                @method('DELETE')
+                                            </form>
+                                        @else
+                                            <button type="button" class="btn btn-sm btn-secondary action-btn" title="No puedes eliminar tu propia cuenta" disabled>
+                                                <i class="fas fa-shield-alt"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7">
+                                    <div class="table-empty-state staff-empty-state">
+                                        <i class="fas fa-users"></i>
+                                        <p class="table-empty-state-text staff-empty-state-text">No hay funcionarios registrados en el sistema</p>
+                                        <a href="{{ route('funcionarios.create') }}" class="btn btn-primary">
+                                            <i class="fas fa-plus"></i> Añadir Funcionario
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-pagination staff-pagination-container">
+                <div class="pagination-info staff-pagination-info">
                     Mostrando <span class="fw-bold" id="resultCount">{{ count($funcionarios) }}</span> de <span class="fw-bold">{{ count($funcionarios) }}</span> funcionarios
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal de detalles del funcionario -->
-<div class="user-details-panel" id="userDetailsPanel">
-    <div class="user-details-modal">
-        <div class="user-details-header">
-            <h3><i class="fas fa-user-tie me-2"></i>Detalles del Funcionario</h3>
-            <button type="button" class="btn" id="closeDetailsBtn">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <div class="user-profile-header">
-            <div class="user-avatar">
-                <span id="userInitials"></span>
+    <!-- Modal de detalles del funcionario -->
+    <div class="user-details-panel details-panel" id="userDetailsPanel">
+        <div class="user-details-modal">
+            <div class="user-details-header">
+                <h3><i class="fas fa-user-tie me-2"></i>Detalles del Funcionario</h3>
+                <button type="button" class="detail-close-btn" id="closeDetailsBtn">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div class="user-info">
-                <h3 id="userName"></h3>
-                <p id="userRole" class="user-type"></p>
+            
+            <div class="user-profile-header">
+                <div class="user-avatar">
+                    <span id="userInitials"></span>
+                </div>
+                <div class="user-info">
+                    <h3 id="userName"></h3>
+                    <p id="userRole" class="user-type"></p>
+                </div>
             </div>
-        </div>
-        
-        <div class="user-details-container">
-            <div class="details-section">
-                <h4 class="section-title"><i class="fas fa-id-card"></i> Información Personal</h4>
-                <div class="details-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">ID</span>
-                        <span class="detail-value" id="userId"></span>
+            
+            <div class="user-details-container">
+                <div class="details-section staff-details-section">
+                    <h4 class="section-title staff-section-title"><i class="fas fa-id-card"></i> Información Personal</h4>
+                    <div class="details-grid staff-details-grid">
+                        <div class="detail-item staff-detail-item">
+                            <span class="detail-label staff-detail-label">ID</span>
+                            <span class="detail-value staff-detail-value" id="userId"></span>
+                        </div>
+                        <div class="detail-item staff-detail-item">
+                            <span class="detail-label staff-detail-label">Nombre Completo</span>
+                            <span class="detail-value staff-detail-value" id="userNameDetail"></span>
+                        </div>
+                        <div class="detail-item staff-detail-item">
+                            <span class="detail-label staff-detail-label">Email</span>
+                            <a class="detail-value staff-detail-value staff-email-link contact-link" id="userEmail"></a>
+                        </div>
+                        <div class="detail-item staff-detail-item">
+                            <span class="detail-label staff-detail-label">Departamento</span>
+                            <span class="detail-value staff-detail-value" id="userDepartamento"></span>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Nombre Completo</span>
-                        <span class="detail-value" id="userNameDetail"></span>
+                </div>
+                
+                <div class="details-section staff-details-section">
+                    <h4 class="section-title staff-section-title"><i class="fas fa-briefcase"></i> Información Laboral</h4>
+                    <div class="details-grid staff-details-grid">
+                        <div class="detail-item staff-detail-item">
+                            <span class="detail-label staff-detail-label">Rol del Sistema</span>
+                            <span class="detail-value staff-detail-value" id="userRoleDetail"></span>
+                        </div>
+                        <div class="detail-item staff-detail-item">
+                            <span class="detail-label staff-detail-label">Estado</span>
+                            <span class="detail-value staff-detail-value" id="userEstado"></span>
+                        </div>
+                        <div class="detail-item staff-detail-item">
+                            <span class="detail-label staff-detail-label">Tipo de Cuenta</span>
+                            <span class="detail-value staff-detail-value" id="userTipoCuenta"></span>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Email</span>
-                        <a class="detail-value email-link" id="userEmail"></a>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Departamento</span>
-                        <span class="detail-value" id="userDepartamento"></span>
+                </div>
+                
+                <div class="details-section staff-details-section" id="permisosSection">
+                    <h4 class="section-title staff-section-title"><i class="fas fa-shield-alt"></i> Permisos del Sistema</h4>
+                    <div id="permisosContainer" class="staff-permisos-container">
+                        <!-- Aquí se mostrarán los permisos según el rol -->
                     </div>
                 </div>
             </div>
             
-            <div class="details-section">
-                <h4 class="section-title"><i class="fas fa-briefcase"></i> Información Laboral</h4>
-                <div class="details-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Rol del Sistema</span>
-                        <span class="detail-value" id="userRoleDetail"></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Estado</span>
-                        <span class="detail-value" id="userEstado"></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Tipo de Cuenta</span>
-                        <span class="detail-value" id="userTipoCuenta"></span>
-                    </div>
-                </div>
+            <div class="panel-actions staff-details-actions">
+                <button type="button" class="btn btn-secondary" id="closePanelBtn">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
+                <a href="#" id="editUserBtn" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Editar Funcionario
+                </a>
+                <a href="#" id="profileBtn" class="btn btn-success" style="display: none;">
+                    <i class="fas fa-user-circle"></i> Ver Mi Perfil
+                </a>
             </div>
-            
-            <div class="details-section" id="permisosSection">
-                <h4 class="section-title"><i class="fas fa-shield-alt"></i> Permisos del Sistema</h4>
-                <div id="permisosContainer">
-                    <!-- Aquí se mostrarán los permisos según el rol -->
-                </div>
-            </div>
-        </div>
-        
-        <div class="details-actions">
-            <button type="button" class="btn btn-secondary" id="closePanelBtn">
-                <i class="fas fa-times"></i> Cerrar
-            </button>
-            <a href="#" id="editUserBtn" class="btn btn-primary">
-                <i class="fas fa-edit"></i> Editar Funcionario
-            </a>
-            <a href="#" id="profileBtn" class="btn btn-success" style="display: none;">
-                <i class="fas fa-user-circle"></i> Ver Mi Perfil
-            </a>
         </div>
     </div>
 </div>
@@ -336,7 +337,7 @@
     margin: 0;
 }
 
-.permiso-item {
+.staff-permiso-item {
     background-color: var(--bg-light);
     padding: 8px 12px;
     border-radius: 6px;
@@ -347,13 +348,30 @@
     margin-bottom: 8px;
 }
 
-.permiso-item i {
+.staff-permiso-item i {
     color: var(--primary-color);
 }
 
-.badge {
+.status-badge {
     font-weight: 500;
     font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    border-radius: 4px;
+}
+
+.bg-info {
+    background-color: #06b6d4 !important;
+    color: white;
+}
+
+.bg-warning {
+    background-color: #f59e0b !important;
+    color: white;
+}
+
+.bg-primary {
+    background-color: var(--primary-color) !important;
+    color: white;
 }
 </style>
 
@@ -365,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const rolValue = document.getElementById('rolFilter').value;
         const departamentoValue = document.getElementById('departamentoFilter').value;
         
-        const rows = document.querySelectorAll('.user-row');
+        const rows = document.querySelectorAll('.staff-user-row');
         let visibleCount = 0;
         
         rows.forEach(row => {
@@ -503,11 +521,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Configurar la badge de rol con color apropiado
             const roleBadge = document.getElementById('userRole');
             roleBadge.textContent = ucFirst(funcionarioData.rol);
-            roleBadge.className = 'badge'; // Reset clases
+            roleBadge.className = 'status-badge'; // Reset clases
             
             switch(funcionarioData.rol) {
                 case 'admin':
-                    roleBadge.classList.add('bg-danger');
+                    roleBadge.classList.add('status-danger');
                     break;
                 case 'desarrollador':
                     roleBadge.classList.add('bg-info');
@@ -519,10 +537,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     roleBadge.classList.add('bg-primary');
                     break;
                 case 'tecnico':
-                    roleBadge.classList.add('bg-success');
+                    roleBadge.classList.add('status-success');
                     break;
                 default:
-                    roleBadge.classList.add('bg-secondary');
+                    roleBadge.classList.add('status-secondary');
             }
             
             // Detalles del funcionario
@@ -543,11 +561,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const tipoCuentaElement = document.getElementById('userTipoCuenta');
             
             if (funcionarioData.esPropio) {
-                estadoElement.innerHTML = '<span class="badge bg-primary"><i class="fas fa-user-circle"></i> Activo (Tú)</span>';
-                tipoCuentaElement.innerHTML = '<span class="badge bg-info">Tu cuenta personal</span>';
+                estadoElement.innerHTML = '<span class="status-badge bg-primary"><i class="fas fa-user-circle"></i> Activo (Tú)</span>';
+                tipoCuentaElement.innerHTML = '<span class="status-badge bg-info">Tu cuenta personal</span>';
             } else {
-                estadoElement.innerHTML = '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Activo</span>';
-                tipoCuentaElement.innerHTML = '<span class="badge bg-secondary">Cuenta de otro funcionario</span>';
+                estadoElement.innerHTML = '<span class="status-badge status-success"><i class="fas fa-check-circle"></i> Activo</span>';
+                tipoCuentaElement.innerHTML = '<span class="status-badge status-secondary">Cuenta de otro funcionario</span>';
             }
             
             // Mostrar permisos según el rol
@@ -693,7 +711,7 @@ function mostrarPermisos(rol) {
     
     permisos.forEach(permiso => {
         const permisoItem = document.createElement('div');
-        permisoItem.className = 'permiso-item';
+        permisoItem.className = 'staff-permiso-item';
         permisoItem.innerHTML = `<i class="${permiso.icon}"></i> ${permiso.nombre}`;
         permisosContainer.appendChild(permisoItem);
     });
