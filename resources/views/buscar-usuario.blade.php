@@ -5,18 +5,18 @@
 @section('page-title', 'Búsqueda de Usuario')
 
 @section('content')
-<div class="search-view-container table-view-container">
-    <link rel="stylesheet" href="{{ asset('css/busqueda.css') }}">
+<link rel="stylesheet" href="{{ asset('css/busqueda.css') }}">
 
+<div class="search-view-container">
     <div class="card">
-        <div class="card-header search-card-header">
-            <h3 class="card-title search-card-title">
-                <i class="fas fa-search me-2"></i>Buscar Usuario
+        <div class="search-card-header">
+            <h3 class="search-card-title">
+                <i class="fas fa-search"></i>Buscar Usuario
             </h3>
         </div>
-        <div class="card-body search-card-body">
-            <form id="buscarUsuarioForm" method="GET" action="{{ route('buscar.usuario') }}" class="row g-3 align-items-end">
-                <div class="col-md-8">
+        <div class="search-card-body">
+            <form id="buscarUsuarioForm" method="GET" action="{{ route('buscar.usuario') }}" class="row g-3 align-items-center">
+                <div class="col-md-16">
                     <label for="rut" class="form-label fw-semibold">RUT del Usuario</label>
                     <div class="input-group">
                         <span class="input-group-text">
@@ -35,12 +35,12 @@
                     </small>
                     <div class="invalid-feedback" id="rutError"></div>
                 </div>
-                <div class="col-md-4">
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary flex-fill" id="btnBuscar">
+                <div class="col-md-8 d-flex align-items-center">
+                    <div class="d-flex gap-2 w-100">
+                        <button type="submit" class="btn btn-search" id="btnBuscar">
                             <i class="fas fa-search me-2"></i> Buscar
                         </button>
-                        <button type="button" class="btn btn-outline-secondary" id="btnLimpiar">
+                        <button type="button" class="btn btn-outline-secondary" id="btnLimpiar" title="Limpiar">
                             <i class="fas fa-broom"></i>
                         </button>
                     </div>
@@ -52,23 +52,21 @@
     @if(isset($usuario))
     <!-- Información del Usuario Encontrado -->
     <div class="card" id="usuarioCard">
-        <div class="card-header bg-success text-white">
-            <div class="d-flex justify-content-between align-items-center">
-                <h3 class="card-title mb-0">
-                    <i class="fas fa-user-check me-2"></i>Usuario Encontrado
-                </h3>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-sm btn-light" id="btnEditarContacto">
-                        <i class="fas fa-edit me-1"></i> Editar Contacto
-                    </button>
-                    <a href="{{ route('solicitudes.create', ['rut' => $usuario['rut']]) }}" 
-                       class="btn btn-sm btn-warning">
-                        <i class="fas fa-plus me-1"></i> Nueva Solicitud
-                    </a>
-                </div>
+        <div class="search-card-header bg-success">
+            <h3 class="search-card-title mb-0">
+                <i class="fas fa-user-check"></i>Usuario Encontrado
+            </h3>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-add" id="btnEditarContacto">
+                    <i class="fas fa-edit me-1"></i> Editar Contacto
+                </button>
+                <a href="{{ route('solicitudes.create', ['rut' => $usuario['rut']]) }}" 
+                   class="btn btn-sm btn-add">
+                    <i class="fas fa-plus me-1"></i> Nueva Solicitud
+                </a>
             </div>
         </div>
-        <div class="card-body">
+        <div class="search-card-body">
             <!-- Vista de Información -->
             <div id="usuarioInfo">
                 <!-- Header con avatar y nombre -->
@@ -99,107 +97,109 @@
                     </div>
                 </div>
 
-                <!-- Información Detallada -->
-                <div class="row g-3">
-                    @if($usuario['tipo_persona'] == 'Natural')
-                    <!-- Datos Personales -->
-                    <div class="col-md-6">
-                        <div class="search-info-group">
-                            <h6 class="search-info-group-title">
-                                <i class="fas fa-user text-primary me-2"></i>Datos Personales
-                            </h6>
-                            <div class="info-grid">
-                                <div class="info-item">
-                                    <span class="info-label">Fecha de Nacimiento:</span>
-                                    <span class="info-value">
-                                        {{ \Carbon\Carbon::parse($usuario['fecha_nacimiento'])->format('d/m/Y') }}
-                                        <small class="text-muted">({{ \Carbon\Carbon::parse($usuario['fecha_nacimiento'])->age }} años)</small>
-                                    </span>
+                <!-- Contenido Principal en Dos Columnas -->
+                <div class="row g-4">
+                    <!-- Columna Izquierda: Información del Usuario -->
+                    <div class="col-lg-6">
+                        <div class="row g-3">
+                            @if($usuario['tipo_persona'] == 'Natural')
+                            <!-- Datos Personales -->
+                            <div class="col-12">
+                                <div class="search-info-group">
+                                    <h6 class="search-info-group-title">
+                                        <i class="fas fa-user text-primary"></i>Datos Personales
+                                    </h6>
+                                    <div class="info-item">
+                                        <span class="info-label">Fecha de Nacimiento:</span>
+                                        <span class="info-value">
+                                            {{ \Carbon\Carbon::parse($usuario['fecha_nacimiento'])->format('d/m/Y') }}
+                                            <small class="text-muted">({{ \Carbon\Carbon::parse($usuario['fecha_nacimiento'])->age }} años)</small>
+                                        </span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Género:</span>
+                                        <span class="info-value">{{ $usuario['genero'] ?? 'No especificado' }}</span>
+                                    </div>
+                                    @if($usuario['uso_ns'] == 'Sí')
+                                    <div class="info-item">
+                                        <span class="info-label">Nombre Social:</span>
+                                        <span class="info-value">{{ $usuario['nombre_social'] ?: 'No especificado' }}</span>
+                                    </div>
+                                    @endif
                                 </div>
-                                <div class="info-item">
-                                    <span class="info-label">Género:</span>
-                                    <span class="info-value">{{ $usuario['genero'] ?? 'No especificado' }}</span>
+                            </div>
+                            @endif
+
+                            <!-- Información de Contacto -->
+                            <div class="col-12">
+                                <div class="search-info-group">
+                                    <h6 class="search-info-group-title">
+                                        <i class="fas fa-phone text-success"></i>Contacto
+                                    </h6>
+                                    <div class="info-item">
+                                        <span class="info-label">Teléfono Principal:</span>
+                                        <span class="info-value">
+                                            <a href="tel:{{ $usuario['telefono'] }}" class="contact-link">
+                                                <i class="fas fa-phone"></i>{{ $usuario['telefono'] }}
+                                            </a>
+                                        </span>
+                                    </div>
+                                    @if($usuario['telefono_2'])
+                                    <div class="info-item">
+                                        <span class="info-label">Teléfono Alternativo:</span>
+                                        <span class="info-value">
+                                            <a href="tel:{{ $usuario['telefono_2'] }}" class="contact-link">
+                                                <i class="fas fa-phone"></i>{{ $usuario['telefono_2'] }}
+                                            </a>
+                                        </span>
+                                    </div>
+                                    @endif
+                                    <div class="info-item">
+                                        <span class="info-label">Email Principal:</span>
+                                        <span class="info-value">
+                                            <a href="mailto:{{ $usuario['email'] }}" class="contact-link">
+                                                <i class="fas fa-envelope"></i>{{ $usuario['email'] }}
+                                            </a>
+                                        </span>
+                                    </div>
+                                    @if($usuario['email_2'])
+                                    <div class="info-item">
+                                        <span class="info-label">Email Alternativo:</span>
+                                        <span class="info-value">
+                                            <a href="mailto:{{ $usuario['email_2'] }}" class="contact-link">
+                                                <i class="fas fa-envelope"></i>{{ $usuario['email_2'] }}
+                                            </a>
+                                        </span>
+                                    </div>
+                                    @endif
                                 </div>
-                                @if($usuario['uso_ns'] == 'Sí')
-                                <div class="info-item">
-                                    <span class="info-label">Nombre Social:</span>
-                                    <span class="info-value">{{ $usuario['nombre_social'] ?: 'No especificado' }}</span>
+                            </div>
+
+                            <!-- Dirección -->
+                            <div class="col-12">
+                                <div class="search-info-group">
+                                    <h6 class="search-info-group-title">
+                                        <i class="fas fa-map-marker-alt text-danger"></i>Dirección
+                                    </h6>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="info-value">{{ $usuario['direccion'] }}</span>
+                                        <a href="https://www.google.com/maps/search/{{ urlencode($usuario['direccion']) }}" 
+                                           target="_blank" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-external-link-alt me-1"></i>Ver en mapa
+                                        </a>
+                                    </div>
                                 </div>
-                                @endif
                             </div>
                         </div>
                     </div>
-                    @endif
 
-                    <!-- Información de Contacto -->
-                    <div class="col-md-6">
-                        <div class="search-info-group">
+                    <!-- Columna Derecha: Estadísticas y Últimas Solicitudes -->
+                    <div class="col-lg-6">
+                        <!-- Estadísticas de Solicitudes -->
+                        @if(isset($solicitudes))
+                        <div class="search-info-group mb-3">
                             <h6 class="search-info-group-title">
-                                <i class="fas fa-phone text-success me-2"></i>Contacto
-                            </h6>
-                            <div class="info-grid">
-                                <div class="info-item">
-                                    <span class="info-label">Teléfono Principal:</span>
-                                    <span class="info-value">
-                                        <a href="tel:{{ $usuario['telefono'] }}" class="contact-link">
-                                            <i class="fas fa-phone me-1"></i>{{ $usuario['telefono'] }}
-                                        </a>
-                                    </span>
-                                </div>
-                                @if($usuario['telefono_2'])
-                                <div class="info-item">
-                                    <span class="info-label">Teléfono Alternativo:</span>
-                                    <span class="info-value">
-                                        <a href="tel:{{ $usuario['telefono_2'] }}" class="contact-link">
-                                            <i class="fas fa-phone me-1"></i>{{ $usuario['telefono_2'] }}
-                                        </a>
-                                    </span>
-                                </div>
-                                @endif
-                                <div class="info-item">
-                                    <span class="info-label">Email Principal:</span>
-                                    <span class="info-value">
-                                        <a href="mailto:{{ $usuario['email'] }}" class="contact-link">
-                                            <i class="fas fa-envelope me-1"></i>{{ $usuario['email'] }}
-                                        </a>
-                                    </span>
-                                </div>
-                                @if($usuario['email_2'])
-                                <div class="info-item">
-                                    <span class="info-label">Email Alternativo:</span>
-                                    <span class="info-value">
-                                        <a href="mailto:{{ $usuario['email_2'] }}" class="contact-link">
-                                            <i class="fas fa-envelope me-1"></i>{{ $usuario['email_2'] }}
-                                        </a>
-                                    </span>
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Dirección (Ancho completo) -->
-                    <div class="col-12">
-                        <div class="search-info-group">
-                            <h6 class="search-info-group-title">
-                                <i class="fas fa-map-marker-alt text-danger me-2"></i>Dirección
-                            </h6>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="info-value">{{ $usuario['direccion'] }}</span>
-                                <a href="https://www.google.com/maps/search/{{ urlencode($usuario['direccion']) }}" 
-                                   target="_blank" class="btn btn-sm btn-outline-info">
-                                    <i class="fas fa-external-link-alt me-1"></i>Ver en mapa
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Estadísticas de Solicitudes -->
-                    @if(isset($solicitudes))
-                    <div class="col-12">
-                        <div class="search-info-group">
-                            <h6 class="search-info-group-title">
-                                <i class="fas fa-chart-bar text-info me-2"></i>Resumen de Solicitudes
+                                <i class="fas fa-chart-bar text-info"></i>Resumen de Solicitudes
                             </h6>
                             <div class="stats-grid">
                                 @php
@@ -250,8 +250,44 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Últimas Solicitudes (Preview) -->
+                        <div class="search-info-group">
+                            <h6 class="search-info-group-title">
+                                <i class="fas fa-history text-warning"></i>Últimas Solicitudes
+                            </h6>
+                            @if(count($solicitudes) > 0)
+                                @foreach(collect($solicitudes)->take(3) as $solicitud)
+                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <div>
+                                        <small class="fw-bold text-primary">#{{ $solicitud['id_solicitud'] }}</small>
+                                        <br>
+                                        <small class="text-muted">{{ \Carbon\Carbon::parse($solicitud['fecha_inicio'])->format('d/m/Y') }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="status-badge status-badge-sm
+                                            @if($solicitud['estado'] == 'Completado') status-success
+                                            @elseif($solicitud['estado'] == 'En proceso') bg-primary
+                                            @elseif($solicitud['estado'] == 'Pendiente') bg-warning text-dark
+                                            @else status-secondary @endif">
+                                            {{ $solicitud['estado'] }}
+                                        </span>
+                                    </div>
+                                </div>
+                                @endforeach
+                                @if(count($solicitudes) > 3)
+                                <div class="text-center mt-3">
+                                    <small class="text-muted">{{ count($solicitudes) - 3 }} solicitudes más...</small>
+                                </div>
+                                @endif
+                            @else
+                                <p class="text-muted text-center py-3">
+                                    <i class="fas fa-inbox me-2"></i>No hay solicitudes registradas
+                                </p>
+                            @endif
+                        </div>
+                        @endif
                     </div>
-                    @endif
                 </div>
             </div>
 
@@ -305,25 +341,23 @@
     <!-- Historial de Solicitudes -->
     @if(isset($solicitudes) && count($solicitudes) > 0)
     <div class="card">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h3 class="card-title">
-                    <i class="fas fa-history me-2"></i>Historial de Solicitudes
-                </h3>
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-secondary active" onclick="filtrarSolicitudes('')">
-                        Todas ({{ count($solicitudes) }})
-                    </button>
-                    <button class="btn btn-outline-warning" onclick="filtrarSolicitudes('Pendiente')">
-                        Pendientes ({{ collect($solicitudes)->where('estado', 'Pendiente')->count() }})
-                    </button>
-                    <button class="btn btn-outline-success" onclick="filtrarSolicitudes('Completado')">
-                        Completadas ({{ collect($solicitudes)->where('estado', 'Completado')->count() }})
-                    </button>
-                </div>
+        <div class="search-card-header">
+            <h3 class="search-card-title mb-0">
+                <i class="fas fa-history"></i>Historial Completo de Solicitudes
+            </h3>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-secondary active" onclick="filtrarSolicitudes('')">
+                    Todas ({{ count($solicitudes) }})
+                </button>
+                <button class="btn btn-outline-warning" onclick="filtrarSolicitudes('Pendiente')">
+                    Pendientes ({{ collect($solicitudes)->where('estado', 'Pendiente')->count() }})
+                </button>
+                <button class="btn btn-outline-success" onclick="filtrarSolicitudes('Completado')">
+                    Completadas ({{ collect($solicitudes)->where('estado', 'Completado')->count() }})
+                </button>
             </div>
         </div>
-        <div class="card-body p-0">
+        <div class="search-card-body p-0">
             <div class="table-responsive">
                 <table class="table data-table table-hover mb-0">
                     <thead>
@@ -370,11 +404,11 @@
                             <td>
                                 <div class="table-actions">
                                     <a href="{{ route('solicitudes.show', $solicitud['id_solicitud']) }}" 
-                                       class="btn btn-sm btn-info action-btn btn-view" title="Ver detalles">
+                                       class="action-btn btn-view" title="Ver detalles">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{{ route('solicitudes.edit', $solicitud['id_solicitud']) }}" 
-                                       class="btn btn-sm btn-primary action-btn btn-edit" title="Editar">
+                                       class="action-btn btn-edit" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                 </div>
@@ -391,15 +425,13 @@
     @elseif(isset($rut) && !isset($usuario))
     <!-- Usuario No Encontrado -->
     <div class="card">
-        <div class="card-header bg-warning text-dark">
-            <h3 class="card-title">
-                <i class="fas fa-user-slash me-2"></i>Usuario No Encontrado
+        <div class="search-card-header bg-warning text-dark">
+            <h3 class="search-card-title">
+                <i class="fas fa-user-slash"></i>Usuario No Encontrado
             </h3>
         </div>
-        <div class="card-body text-center py-5">
-            <div class="mb-4">
-                <i class="fas fa-user-times display-1 text-warning"></i>
-            </div>
+        <div class="search-card-body text-center py-5">
+
             <h4 class="mb-3">No se encontró el usuario</h4>
             <p class="text-muted mb-4">
                 No existe ningún usuario registrado con el RUT: <strong>{{ $rut }}</strong>
@@ -427,147 +459,6 @@
         </div>
     </div>
 </div>
-
-<style>
-/* Estilos específicos para buscar usuario */
-.user-header {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 8px;
-    padding: 20px;
-}
-
-.user-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #2c5aa0 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-    font-size: 1.5rem;
-    box-shadow: 0 4px 12px rgba(56, 103, 214, 0.3);
-}
-
-.user-basic-info h4 {
-    font-weight: 600;
-    color: var(--text-color);
-}
-
-.info-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.contact-link {
-    color: var(--primary-color);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    transition: all 0.2s ease;
-}
-
-.contact-link:hover {
-    color: #2c5aa0;
-    text-decoration: none;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 16px;
-}
-
-.stat-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    background: var(--bg-light);
-    border-radius: 8px;
-    gap: 10px;
-}
-
-.stat-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1rem;
-}
-
-.stat-content {
-    display: flex;
-    flex-direction: column;
-}
-
-.stat-number {
-    font-size: 1.25rem;
-    font-weight: bold;
-    color: var(--text-color);
-    line-height: 1;
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    color: var(--text-light);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.loading-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.status-badge {
-    font-weight: 500;
-    font-size: 0.75rem;
-    padding: 0.35em 0.65em;
-    border-radius: 4px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .user-header {
-        text-align: center;
-    }
-    
-    .user-avatar {
-        width: 50px;
-        height: 50px;
-        font-size: 1.25rem;
-        margin: 0 auto 12px;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

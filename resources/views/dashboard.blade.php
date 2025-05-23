@@ -223,7 +223,7 @@
                         </div>
                         <div class="dashboard-metric-data">
                             <div class="dashboard-metric-number">{{ $solicitudesCompletadas }}</div>
-                            <div class="dashboard-metric-label">Completadas</div>
+                            <div class="dashboard-metric-label">Realizadas</div>
                             <div class="dashboard-metric-change positive">
                                 <i class="fas fa-arrow-up"></i> +{{ round(($solicitudesCompletadas / max($totalSolicitudesMes, 1)) * 100) }}%
                             </div>
@@ -236,7 +236,7 @@
                         </div>
                         <div class="dashboard-metric-data">
                             <div class="dashboard-metric-number">{{ $solicitudesEnProceso }}</div>
-                            <div class="dashboard-metric-label">En Proceso</div>
+                            <div class="dashboard-metric-label">Proceso</div>
                             <div class="dashboard-metric-change neutral">
                                 <i class="fas fa-minus"></i> {{ round(($solicitudesEnProceso / max($totalSolicitudesMes, 1)) * 100) }}%
                             </div>
@@ -249,7 +249,7 @@
                         </div>
                         <div class="dashboard-metric-data">
                             <div class="dashboard-metric-number">{{ $solicitudesNuevas }}</div>
-                            <div class="dashboard-metric-label">Nuevas</div>
+                            <div class="dashboard-metric-label">Ingresos</div>
                             <div class="dashboard-metric-change positive">
                                 <i class="fas fa-arrow-up"></i> {{ $solicitudesHoy }} hoy
                             </div>

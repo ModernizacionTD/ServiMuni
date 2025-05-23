@@ -65,33 +65,40 @@ class BusquedaController extends Controller
      */
     public function actualizarContacto(Request $request, $rut)
     {
-        $request->validate([
-            'telefono' => 'required|string|max:12',
-            'telefono_2' => 'nullable|string|max:12',
-            'email' => 'required|email|max:255',
-            'email_2' => 'nullable|email|max:255',
-            'direccion' => 'required|string|max:255',
-        ]);
-        
-        // Obtener usuario actual
-        $usuario = $this->usuarioService->getUsuarioByRut($rut);
-        
-        if (!$usuario) {
-            return back()->with('error', 'Usuario no encontrado.');
+        try {
+            $request->validate([
+                'telefono' => 'required|string|max:12',
+                'telefono_2' => 'nullable|string|max:12',
+                'email' => 'required|email|max:255',
+                'email_2' => 'nullable|email|max:255',
+                'direccion' => 'required|string|max:255',
+            ]);
+            
+            // Obtener usuario actual
+            $usuario = $this->usuarioService->getUsuarioByRut($rut);
+            
+            if (!$usuario) {
+                return back()->with('error', 'Usuario no encontrado.');
+            }
+            
+            // Preparar datos actualizados (solo los campos que se pueden editar)
+            $datosActualizados = [
+                'telefono' => $request->telefono,
+                'telefono_2' => $request->telefono_2,
+                'email' => $request->email,
+                'email_2' => $request->email_2,
+                'direccion' => $request->direccion,
+            ];
+            
+            // Actualizar usuario
+            $this->usuarioService->updateUsuario($rut, $datosActualizados);
+            
+            return redirect()->route('buscar.usuario', ['rut' => $rut])
+                             ->with('success', 'Información de contacto actualizada correctamente.');
+                             
+        } catch (\Exception $e) {
+            \Log::error('Error al actualizar contacto: ' . $e->getMessage());
+            return back()->with('error', 'Error al actualizar la información: ' . $e->getMessage());
         }
-        
-        // Actualizar solo los campos de contacto
-        $datosActualizados = [
-            'telefono' => $request->telefono,
-            'telefono_2' => $request->telefono_2,
-            'email' => $request->email,
-            'email_2' => $request->email_2,
-            'direccion' => $request->direccion,
-        ];
-        
-        $this->usuarioService->update($rut, $datosActualizados);
-        
-        return redirect()->route('buscar.usuario', ['rut' => $rut])
-                         ->with('success', 'Información de contacto actualizada correctamente.');
     }
 }

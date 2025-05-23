@@ -18,7 +18,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 // Página de inicio
 Route::get('/', function () {
     return view('welcome');
-});
+}); 
 
 // Búsqueda de usuarios por RUT
 Route::get('/buscar-usuario', [BusquedaController::class, 'buscarUsuario'])->name('buscar.usuario');

@@ -1,5 +1,6 @@
 /* ===== BUSQUEDA.CSS - Estilos específicos para búsqueda de usuarios ===== */
 
+
 /* Contenedor específico para vistas de búsqueda */
 .search-view-container {
     /* Variables específicas para búsqueda */
@@ -17,6 +18,50 @@
     --search-border-color: var(--border-color, #e2e8f0);
     --search-border-radius: var(--border-radius, 8px);
     --search-card-shadow: var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+.btn-search {
+    background-color: var(--search-primary-color);
+    border: 1px solid var(--search-primary-color);
+    color: var(--search-bg-white);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+}
+
+
+.btn-add {
+    background-color: #eaedf3;
+    border: 1px solid var(--search-primary-color);
+    color: var(--search-primary-color);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+}
+
+.btn-add:hover {
+    background: var(--search-primary-color);
+    color: white;
+    border-color: var(--search-primary-dark);
+    transform: translateY(-1px);
 }
 
 /* ===== HEADER DE BÚSQUEDA ===== */
@@ -218,7 +263,6 @@
 .search-view-container .stat-label {
     font-size: 0.75rem;
     color: var(--search-text-light);
-    text-transform: uppercase;
     letter-spacing: 0.5px;
     font-weight: 500;
 }
