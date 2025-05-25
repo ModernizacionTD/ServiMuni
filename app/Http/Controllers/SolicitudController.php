@@ -139,7 +139,7 @@ class SolicitudController extends Controller
             $requerimientos = $this->requerimientoService->getAllRequerimientos();
             
             return view('solicitudes.create', [
-                'departamentos' => $departamentos,  // Añadimos esta línea
+                'departamentos' => $departamentos,
                 'requerimientos' => $requerimientos,
                 'usuario' => $usuario,
                 'nombre' => session('user_nombre')
@@ -151,7 +151,7 @@ class SolicitudController extends Controller
     }
 
     /**
-     * Almacena una nueva solicitud
+     * Almacena una nueva solicitud - MÉTODO CORREGIDO
      */
     public function store(Request $request)
     {
@@ -159,6 +159,9 @@ class SolicitudController extends Controller
         if (!session('user_id')) {
             return redirect()->route('login');
         }
+        
+        \Log::info('Iniciando proceso de guardado de solicitud');
+        \Log::info('Datos del request:', $request->all());
         
         $request->validate([
             'rut_usuario' => 'required|string|max:14',
@@ -169,6 +172,8 @@ class SolicitudController extends Controller
             'ubicacion' => 'required|string|max:50',
             'providencia' => 'nullable|integer',
             'imagen' => 'nullable|image|max:5120', // Máx 5MB
+            'latitud' => 'nullable|numeric',
+            'longitud' => 'nullable|numeric',
         ]);
 
         try {
@@ -176,11 +181,14 @@ class SolicitudController extends Controller
             $usuario = $this->usuarioService->getUsuarioByRut($request->rut_usuario);
             
             if (!$usuario) {
+                \Log::error('Usuario no encontrado: ' . $request->rut_usuario);
                 return back()->withInput()
                     ->with('error', 'El usuario con RUT ' . $request->rut_usuario . ' no existe en el sistema.');
             }
             
-            // Preparar los datos básicos
+            \Log::info('Usuario encontrado: ' . $usuario['nombre'] . ' ' . $usuario['apellidos']);
+            
+            // Preparar los datos básicos - USAR FECHA_INGRESO CONSISTENTE
             $data = [
                 'rut_usuario' => $request->rut_usuario,
                 'rut_ingreso' => session('user_id'),
@@ -189,14 +197,19 @@ class SolicitudController extends Controller
                 'localidad' => $request->localidad,
                 'tipo_ubicacion' => $request->tipo_ubicacion,
                 'ubicacion' => $request->ubicacion,
-                'providencia' => $request->providencia,
+                'providencia' => $request->providencia ?: '', // Convertir null a cadena vacía
                 'estado' => 'Pendiente',
                 'etapa' => 'Ingreso',
-                'fecha_inicio' => date('Y-m-d'),
+                'fecha_ingreso' => date('Y-m-d'), // Usar fecha_ingreso en lugar de fecha_inicio
+                'latitud' => $request->latitud ?: '', // Convertir null a cadena vacía
+                'longitud' => $request->longitud ?: '', // Convertir null a cadena vacía
             ];
+            
+            \Log::info('Datos preparados para crear solicitud:', $data);
             
             // Manejar la carga de imagen si está presente
             if ($request->hasFile('imagen')) {
+                \Log::info('Procesando imagen subida');
                 $imagen = $request->file('imagen');
                 $nombreImagen = time() . '_' . $imagen->getClientOriginalName();
                 
@@ -205,15 +218,28 @@ class SolicitudController extends Controller
                 
                 // Guardar nombre de archivo en la BD
                 $data['imagen'] = $nombreImagen;
+                \Log::info('Imagen guardada: ' . $nombreImagen);
             }
             
             // Crear la solicitud
+            \Log::info('Llamando al servicio para crear solicitud');
             $solicitud = $this->solicitudService->create($data);
             
-            return redirect()->route('buscar.usuario', ['rut' => $request->rut_usuario])
-                ->with('success', 'Solicitud creada correctamente con ID: ' . $solicitud['id_solicitud']);
+            \Log::info('Solicitud creada exitosamente con ID: ' . $solicitud['id_solicitud']);
+            
+            // Redirigir con mensaje de éxito
+            $mensaje = 'Solicitud creada correctamente con ID: ' . $solicitud['id_solicitud'];
+            
+            if ($request->rut_usuario) {
+                return redirect()->route('buscar.usuario', ['rut' => $request->rut_usuario])
+                    ->with('success', $mensaje);
+            } else {
+                return redirect()->route('solicitudes.index')
+                    ->with('success', $mensaje);
+            }
         } catch (\Exception $e) {
             \Log::error('Error al crear solicitud: ' . $e->getMessage());
+            \Log::error('Traza completa: ' . $e->getTraceAsString());
             return back()->withInput()
                 ->with('error', 'Error al crear la solicitud: ' . $e->getMessage());
         }
@@ -257,11 +283,11 @@ class SolicitudController extends Controller
             }
             
             if (!empty($solicitud['rut_gestor'])) {
-                $funcionarioGestor = $this->funcionarioService->getByFuncionarioId($solicitud['rut_gestor']);
+                $funcionarioGestor = $this->funcionarioService->getFuncionarioById($solicitud['rut_gestor']);
             }
             
             if (!empty($solicitud['rut_tecnico'])) {
-                $funcionarioTecnico = $this->funcionarioService->getByFuncionarioId($solicitud['rut_tecnico']);
+                $funcionarioTecnico = $this->funcionarioService->getFuncionarioById($solicitud['rut_tecnico']);
             }
             
             return view('solicitudes.show', [
@@ -465,7 +491,7 @@ class SolicitudController extends Controller
         
         try {
             // Verificar si el funcionario existe
-            $funcionario = $this->funcionarioService->geFuncionarioById($request->rut_gestor);
+            $funcionario = $this->funcionarioService->getFuncionarioById($request->rut_gestor);
             
             if (!$funcionario) {
                 return back()->with('error', 'El funcionario seleccionado no existe.');
@@ -562,7 +588,7 @@ class SolicitudController extends Controller
                 'fecha_estimada_op' => $request->fecha_estimada_op,
             ];
             
-            $solicitud = $this->solicitudService->update($id, $data);
+            $solicitud = $this->solicitudService->updateSolicitud($id, $data);
             
             return redirect()->route('solicitudes.show', $id)
                 ->with('success', 'Fecha estimada establecida correctamente.');
@@ -593,11 +619,11 @@ class SolicitudController extends Controller
             
             // Filtrar por fecha
             $solicitudesFiltradas = array_filter($todasSolicitudes, function($solicitud) use ($fechaInicio, $fechaFin) {
-                if (empty($solicitud['fecha_inicio'])) {
+                if (empty($solicitud['fecha_ingreso'])) {
                     return false;
                 }
                 
-                $fechaSolicitud = Carbon::parse($solicitud['fecha_inicio']);
+                $fechaSolicitud = Carbon::parse($solicitud['fecha_ingreso']);
                 return $fechaSolicitud->between($fechaInicio, $fechaFin);
             });
             
@@ -686,8 +712,8 @@ class SolicitudController extends Controller
             $porRequerimiento[$requerimientoId]++;
             
             // Calcular tiempos de respuesta para solicitudes terminadas
-            if (!empty($solicitud['fecha_termino']) && !empty($solicitud['fecha_inicio'])) {
-                $fechaInicio = Carbon::parse($solicitud['fecha_inicio']);
+            if (!empty($solicitud['fecha_termino']) && !empty($solicitud['fecha_ingreso'])) {
+                $fechaInicio = Carbon::parse($solicitud['fecha_ingreso']);
                 $fechaTermino = Carbon::parse($solicitud['fecha_termino']);
                 
                 if ($fechaTermino->gte($fechaInicio)) {

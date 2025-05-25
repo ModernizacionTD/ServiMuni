@@ -7,6 +7,19 @@ use Google\Service\Sheets;
 class SolicitudService extends BaseService
 {
     /**
+     * Limpia los datos reemplazando null por cadenas vacías
+     *
+     * @param mixed $value
+     * @return string
+     */
+    private function cleanValue($value)
+    {
+        if ($value === null || $value === 'null') {
+            return '';
+        }
+        return (string) $value;
+    }
+    /**
      * Obtiene todas las solicitudes del sistema
      *
      * @return array
@@ -14,7 +27,7 @@ class SolicitudService extends BaseService
     public function getAllSolicitudes()
     {
         try {
-            $range = 'Solicitudes!A:Q'; // Rango para todos los campos de solicitudes
+            $range = 'Solicitudes!A:R'; // Cambiado a R para incluir latitud y longitud
             $response = $this->sheets->spreadsheets_values->get($this->spreadsheetId, $range);
             $values = $response->getValues();
             
@@ -41,7 +54,9 @@ class SolicitudService extends BaseService
                 'imagen', 
                 'localidad', 
                 'tipo_ubicacion', 
-                'ubicacion'
+                'ubicacion',
+                'latitud',
+                'longitud'
             ];
             
             $result = [];
@@ -53,12 +68,12 @@ class SolicitudService extends BaseService
                 
                 // Asegurarse de que tengamos suficientes elementos en la fila
                 while (count($row) < count($headers)) {
-                    $row[] = null;
+                    $row[] = '';  // Usar cadena vacía en lugar de null
                 }
                 
                 $item = [];
                 foreach ($headers as $headerIndex => $header) {
-                    $item[$header] = $row[$headerIndex] ?? null;
+                    $item[$header] = $row[$headerIndex] ?? '';  // Usar cadena vacía en lugar de null
                 }
                 $result[] = $item;
             }
@@ -131,71 +146,16 @@ class SolicitudService extends BaseService
     }
     
     /**
-     * Obtiene solicitudes por requerimiento
-     *
-     * @param string $requerimientoId
-     * @return array
-     */
-    public function getByRequerimiento($requerimientoId)
-    {
-        try {
-            \Log::info('Buscando solicitudes para el requerimiento ID: ' . $requerimientoId);
-            
-            // Obtener todas las solicitudes
-            $solicitudes = $this->getAllSolicitudes();
-            
-            // Filtrar por requerimiento_id
-            $filteredSolicitudes = array_filter($solicitudes, function($solicitud) use ($requerimientoId) {
-                return isset($solicitud['requerimiento_id']) && $solicitud['requerimiento_id'] == $requerimientoId;
-            });
-            
-            \Log::info('Se encontraron ' . count($filteredSolicitudes) . ' solicitudes para el requerimiento');
-            return array_values($filteredSolicitudes); // Reindexar el array
-        } catch (\Exception $e) {
-            \Log::error('Error al buscar solicitudes por requerimiento: ' . $e->getMessage());
-            \Log::error('Traza: ' . $e->getTraceAsString());
-            throw new \Exception('Error al buscar solicitudes por requerimiento: ' . $e->getMessage());
-        }
-    }
-    
-    /**
-     * Obtiene solicitudes por estado
-     *
-     * @param string $estado
-     * @return array
-     */
-    public function getByEstado($estado)
-    {
-        try {
-            \Log::info('Buscando solicitudes con estado: ' . $estado);
-            
-            // Obtener todas las solicitudes
-            $solicitudes = $this->getAllSolicitudes();
-            
-            // Filtrar por estado
-            $filteredSolicitudes = array_filter($solicitudes, function($solicitud) use ($estado) {
-                return isset($solicitud['estado']) && $solicitud['estado'] == $estado;
-            });
-            
-            \Log::info('Se encontraron ' . count($filteredSolicitudes) . ' solicitudes con estado ' . $estado);
-            return array_values($filteredSolicitudes); // Reindexar el array
-        } catch (\Exception $e) {
-            \Log::error('Error al buscar solicitudes por estado: ' . $e->getMessage());
-            \Log::error('Traza: ' . $e->getTraceAsString());
-            throw new \Exception('Error al buscar solicitudes por estado: ' . $e->getMessage());
-        }
-    }
-    
-    /**
-     * Crea una nueva solicitud
+     * Crea una nueva solicitud - MÉTODO CORREGIDO
      *
      * @param array $data
      * @return array
      */
-    public function createSolicitud($data)
+    public function create($data)
     {
         try {
             \Log::info('Iniciando creación de solicitud');
+            \Log::info('Datos recibidos:', $data);
             
             // Obtener todas las solicitudes para determinar el próximo ID
             $solicitudes = $this->getAllSolicitudes();
@@ -209,27 +169,29 @@ class SolicitudService extends BaseService
             
             \Log::info('Nuevo ID para la solicitud: ' . $nextId);
             
-            // Preparar datos para insertar
+            // Preparar datos para insertar - USAR FECHA_INGRESO CONSISTENTE
             $values = [
                 [
                     $nextId,
-                    $data['fecha_ingreso'] ?? date('Y-m-d'),
-                    $data['fecha_termino'] ?? null,
-                    $data['fecha_derivacion'] ?? null,
-                    $data['fecha_estimada_op'] ?? null,
-                    $data['estado'] ?? 'Pendiente',
-                    $data['etapa'] ?? 'Ingreso',
-                    $data['rut_usuario'] ?? null,
-                    $data['rut_ingreso'] ?? null,
-                    $data['rut_gestor'] ?? null,
-                    $data['rut_tecnico'] ?? null,
-                    $data['providencia'] ?? null,
-                    $data['requerimiento_id'] ?? null,
-                    $data['descripcion'] ?? null,
-                    $data['imagen'] ?? null,
-                    $data['localidad'] ?? null,
-                    $data['tipo_ubicacion'] ?? null,
-                    $data['ubicacion'] ?? null
+                    $this->cleanValue($data['fecha_ingreso'] ?? $data['fecha_inicio'] ?? date('Y-m-d')), // fecha_ingreso
+                    $this->cleanValue($data['fecha_termino'] ?? ''),
+                    $this->cleanValue($data['fecha_derivacion'] ?? ''),
+                    $this->cleanValue($data['fecha_estimada_op'] ?? ''),
+                    $this->cleanValue($data['estado'] ?? 'Pendiente'),
+                    $this->cleanValue($data['etapa'] ?? 'Ingreso'),
+                    $this->cleanValue($data['rut_usuario'] ?? ''),
+                    $this->cleanValue($data['rut_ingreso'] ?? ''),
+                    $this->cleanValue($data['rut_gestor'] ?? ''),
+                    $this->cleanValue($data['rut_tecnico'] ?? ''),
+                    $this->cleanValue($data['providencia'] ?? ''),
+                    $this->cleanValue($data['requerimiento_id'] ?? ''),
+                    $this->cleanValue($data['descripcion'] ?? ''),
+                    $this->cleanValue($data['imagen'] ?? ''),
+                    $this->cleanValue($data['localidad'] ?? ''),
+                    $this->cleanValue($data['tipo_ubicacion'] ?? ''),
+                    $this->cleanValue($data['ubicacion'] ?? ''),
+                    $this->cleanValue($data['latitud'] ?? ''),
+                    $this->cleanValue($data['longitud'] ?? '')
                 ]
             ];
             
@@ -240,8 +202,9 @@ class SolicitudService extends BaseService
             // Determinar la siguiente fila disponible
             $nextRow = count($solicitudes) + 2; // +1 para los encabezados, +1 para la siguiente fila
             
-            // Si la hoja está vacía, asegurar que existe y crear los encabezados
-            if (empty($solicitudes)) {
+            // Si la hoja está vacía o tiene menos de 2 filas, crear los encabezados
+            if (empty($solicitudes) || count($solicitudes) === 0) {
+                \Log::info('Creando encabezados porque la hoja está vacía');
                 $headers = [
                     'id_solicitud', 
                     'fecha_ingreso', 
@@ -260,17 +223,35 @@ class SolicitudService extends BaseService
                     'imagen', 
                     'localidad', 
                     'tipo_ubicacion', 
-                    'ubicacion'
+                    'ubicacion',
+                    'latitud',
+                    'longitud'
                 ];
                 
-                $this->createHeadersIfNeeded('Solicitudes!A1:Q1', $headers);
+                // Crear encabezados primero
+                $headerBody = new \Google\Service\Sheets\ValueRange([
+                    'values' => [$headers]
+                ]);
+                
+                $this->sheets->spreadsheets_values->update(
+                    $this->spreadsheetId, 
+                    'Solicitudes!A1:T1', 
+                    $headerBody, 
+                    ['valueInputOption' => 'RAW']
+                );
+                
+                \Log::info('Encabezados creados exitosamente');
             }
             
-            $range = "Solicitudes!A$nextRow:Q$nextRow";
+            $range = "Solicitudes!A$nextRow:T$nextRow";
             
             $params = [
                 'valueInputOption' => 'RAW'
             ];
+            
+            \Log::info('Insertando en rango: ' . $range);
+            \Log::info('Valores a insertar (limpios):', $values[0]);
+            \Log::info('Tipo de cada valor:', array_map('gettype', $values[0]));
             
             $result = $this->sheets->spreadsheets_values->update(
                 $this->spreadsheetId, 
@@ -279,7 +260,7 @@ class SolicitudService extends BaseService
                 $params
             );
             
-            \Log::info('Solicitud creada correctamente');
+            \Log::info('Solicitud creada correctamente - Respuesta de Google Sheets recibida');
             
             // Devolver los datos con el ID asignado
             $data['id_solicitud'] = $nextId;
@@ -328,27 +309,29 @@ class SolicitudService extends BaseService
             $solicitudActualizada = array_merge($solicitudActual, $data);
             $solicitudActualizada['id_solicitud'] = $id; // Mantener el mismo ID
             
-            // Preparar datos para actualizar
+            // Preparar datos para actualizar - SIN NULLS
             $values = [
                 [
-                    $solicitudActualizada['id_solicitud'],
-                    $solicitudActualizada['fecha_ingreso'] ?? null,
-                    $solicitudActualizada['fecha_termino'] ?? null,
-                    $solicitudActualizada['fecha_derivacion'] ?? null,
-                    $solicitudActualizada['fecha_estimada_op'] ?? null,
-                    $solicitudActualizada['estado'] ?? null,
-                    $solicitudActualizada['etapa'] ?? null,
-                    $solicitudActualizada['rut_usuario'] ?? null,
-                    $solicitudActualizada['rut_ingreso'] ?? null,
-                    $solicitudActualizada['rut_gestor'] ?? null,
-                    $solicitudActualizada['rut_tecnico'] ?? null,
-                    $solicitudActualizada['providencia'] ?? null,
-                    $solicitudActualizada['requerimiento_id'] ?? null,
-                    $solicitudActualizada['descripcion'] ?? null,
-                    $solicitudActualizada['imagen'] ?? null,
-                    $solicitudActualizada['localidad'] ?? null,
-                    $solicitudActualizada['tipo_ubicacion'] ?? null,
-                    $solicitudActualizada['ubicacion'] ?? null
+                    $this->cleanValue($solicitudActualizada['id_solicitud']),
+                    $this->cleanValue($solicitudActualizada['fecha_ingreso'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['fecha_termino'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['fecha_derivacion'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['fecha_estimada_op'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['estado'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['etapa'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['rut_usuario'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['rut_ingreso'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['rut_gestor'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['rut_tecnico'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['providencia'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['requerimiento_id'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['descripcion'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['imagen'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['localidad'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['tipo_ubicacion'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['ubicacion'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['latitud'] ?? ''),
+                    $this->cleanValue($solicitudActualizada['longitud'] ?? '')
                 ]
             ];
             
@@ -356,7 +339,7 @@ class SolicitudService extends BaseService
                 'values' => $values
             ]);
             
-            $range = "Solicitudes!A$rowIndex:Q$rowIndex";
+            $range = "Solicitudes!A$rowIndex:T$rowIndex";
             
             $params = [
                 'valueInputOption' => 'RAW'
@@ -411,14 +394,14 @@ class SolicitudService extends BaseService
             
             // Preparar solicitud para eliminar la fila (reemplazando con valores vacíos)
             $values = [
-                array_fill(0, 18, '') // 18 celdas vacías para "eliminar" la fila
+                array_fill(0, 20, '') // 20 celdas vacías para "eliminar" la fila
             ];
             
             $body = new \Google\Service\Sheets\ValueRange([
                 'values' => $values
             ]);
             
-            $range = "Solicitudes!A$rowIndex:Q$rowIndex";
+            $range = "Solicitudes!A$rowIndex:T$rowIndex";
             
             $params = [
                 'valueInputOption' => 'RAW'
@@ -477,7 +460,7 @@ class SolicitudService extends BaseService
             }
             
             // Actualizar la solicitud
-            return $this->update($id, $data);
+            return $this->updateSolicitud($id, $data);
         } catch (\Exception $e) {
             \Log::error('Error al actualizar estado de solicitud: ' . $e->getMessage());
             throw new \Exception('Error al actualizar estado de solicitud: ' . $e->getMessage());
@@ -503,7 +486,7 @@ class SolicitudService extends BaseService
                 'etapa' => 'Asignada'
             ];
             
-            return $this->update($id, $data);
+            return $this->updateSolicitud($id, $data);
         } catch (\Exception $e) {
             \Log::error('Error al asignar gestor a solicitud: ' . $e->getMessage());
             throw new \Exception('Error al asignar gestor a solicitud: ' . $e->getMessage());
@@ -528,7 +511,7 @@ class SolicitudService extends BaseService
                 'etapa' => 'En proceso'
             ];
             
-            return $this->update($id, $data);
+            return $this->updateSolicitud($id, $data);
         } catch (\Exception $e) {
             \Log::error('Error al asignar técnico a solicitud: ' . $e->getMessage());
             throw new \Exception('Error al asignar técnico a solicitud: ' . $e->getMessage());
