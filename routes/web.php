@@ -9,6 +9,7 @@ use App\Http\Controllers\SolicitudController;
 use App\Http\Controllers\BusquedaController;
 use App\Http\Controllers\DashboardController; // NUEVO: Importar DashboardController
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BandejaController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -37,6 +38,13 @@ Route::prefix('solicitudes')->group(function () {
     Route::put('/{id}', [SolicitudController::class, 'update'])->name('solicitudes.update');
     Route::delete('/{id}', [SolicitudController::class, 'destroy'])->name('solicitudes.destroy');
 });
+
+// Agregar estas rutas en tu archivo web.php
+
+// Bandeja de solicitudes
+Route::get('/bandeja', [BandejaController::class, 'index'])->name('bandeja.index');
+Route::post('/bandeja/{id}/tomar', [BandejaController::class, 'tomarSolicitud'])->name('bandeja.tomar');
+Route::post('/bandeja/{id}/cambiar-estado', [BandejaController::class, 'cambiarEstado'])->name('bandeja.cambiar-estado');
 
 // NUEVO: Dashboard usando DashboardController
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

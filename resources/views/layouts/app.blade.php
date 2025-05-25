@@ -51,6 +51,31 @@
                     </a>
                 </li>
                 @endif
+
+                <!-- En app.blade.php, en la sección de navegación, agrega: -->
+
+<li class="nav-item-app">
+    <a href="{{ route('dashboard') }}" class="nav-link-app {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+    </a>
+</li>
+
+<!-- NUEVA LÍNEA PARA LA BANDEJA -->
+<li class="nav-item-app">
+    <a href="{{ route('bandeja.index') }}" class="nav-link-app {{ request()->routeIs('bandeja.*') ? 'active' : '' }}">
+        <i class="fas fa-inbox"></i>
+        <span>Mi Bandeja</span>
+    </a>
+</li>
+
+<!-- Nuevo enlace para Ingresar Solicitudes -->
+<li class="nav-item-app">
+    <a href="{{ route('buscar.usuario') }}" class="nav-link-app {{ request()->routeIs('buscar.usuario') ? 'active' : '' }}">
+        <i class="fas fa-clipboard-list"></i>
+        <span>Ingresar Solicitud</span>
+    </a>
+</li>
             </ul>
         </div>
 
