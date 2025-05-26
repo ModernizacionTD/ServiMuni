@@ -68,6 +68,33 @@ class RequerimientoController extends Controller
     }
 
     /**
+ * Obtiene requerimientos por departamento
+ *
+ * @param int $departamentoId
+ * @return array
+ */
+public function getByDepartamento($departamentoId)
+{
+    try {
+        \Log::info('Buscando requerimientos para departamento ID: ' . $departamentoId);
+        
+        // Obtener todos los requerimientos
+        $requerimientos = $this->getAllRequerimientos();
+        
+        // Filtrar por departamento_id
+        $filteredRequerimientos = array_filter($requerimientos, function($requerimiento) use ($departamentoId) {
+            return isset($requerimiento['departamento_id']) && $requerimiento['departamento_id'] == $departamentoId;
+        });
+        
+        \Log::info('Se encontraron ' . count($filteredRequerimientos) . ' requerimientos para el departamento');
+        return array_values($filteredRequerimientos); // Reindexar el array
+    } catch (\Exception $e) {
+        \Log::error('Error al buscar requerimientos por departamento: ' . $e->getMessage());
+        throw new \Exception('Error al buscar requerimientos por departamento: ' . $e->getMessage());
+    }
+}
+
+    /**
      * Almacena un nuevo requerimiento
      */
     public function store(Request $request)

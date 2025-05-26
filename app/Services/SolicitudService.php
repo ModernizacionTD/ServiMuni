@@ -19,6 +19,7 @@ class SolicitudService extends BaseService
         }
         return (string) $value;
     }
+
     /**
      * Obtiene todas las solicitudes del sistema
      *
@@ -27,7 +28,7 @@ class SolicitudService extends BaseService
     public function getAllSolicitudes()
     {
         try {
-            $range = 'Solicitudes!A:R'; // Cambiado a R para incluir latitud y longitud
+            $range = 'Solicitudes!A:U'; // Ampliado para incluir los nuevos campos
             $response = $this->sheets->spreadsheets_values->get($this->spreadsheetId, $range);
             $values = $response->getValues();
             
@@ -35,28 +36,29 @@ class SolicitudService extends BaseService
                 return [];
             }
             
-            // Definir los encabezados de acuerdo a los campos de la tabla
+            // Definir los encabezados actualizados según la nueva estructura
             $headers = [
-                'id_solicitud', 
-                'fecha_ingreso', 
-                'fecha_termino', 
-                'fecha_derivacion', 
-                'fecha_estimada_op', 
-                'estado', 
-                'etapa', 
-                'rut_usuario', 
-                'rut_ingreso', 
-                'rut_gestor', 
-                'rut_tecnico', 
-                'providencia', 
-                'requerimiento_id', 
-                'descripcion', 
-                'imagen', 
-                'localidad', 
-                'tipo_ubicacion', 
-                'ubicacion',
-                'latitud',
-                'longitud'
+                'id_solicitud',         // A
+                'fecha_ingreso',        // B
+                'fecha_termino',        // C
+                'fecha_validacion',     // D - NUEVO
+                'razon_validacion',     // E - NUEVO
+                'fecha_derivacion',     // F
+                'derivacion',           // G - NUEVO
+                'fecha_estimada_op',    // H
+                'estado',               // I
+                'etapa',                // J
+                'rut_usuario',          // K
+                'rut_ingreso',          // L
+                'rut_gestor',           // M
+                'rut_tecnico',          // N
+                'providencia',          // O
+                'requerimiento_id',     // P
+                'descripcion',          // Q
+                'imagen',               // R
+                'localidad',            // S
+                'tipo_ubicacion',       // T
+                'ubicacion'             // U
             ];
             
             $result = [];
@@ -146,7 +148,7 @@ class SolicitudService extends BaseService
     }
     
     /**
-     * Crea una nueva solicitud - MÉTODO CORREGIDO
+     * Crea una nueva solicitud
      *
      * @param array $data
      * @return array
@@ -169,29 +171,30 @@ class SolicitudService extends BaseService
             
             \Log::info('Nuevo ID para la solicitud: ' . $nextId);
             
-            // Preparar datos para insertar - USAR FECHA_INGRESO CONSISTENTE
+            // Preparar datos para insertar con la nueva estructura
             $values = [
                 [
-                    $nextId,
-                    $this->cleanValue($data['fecha_ingreso'] ?? $data['fecha_inicio'] ?? date('Y-m-d')), // fecha_ingreso
-                    $this->cleanValue($data['fecha_termino'] ?? ''),
-                    $this->cleanValue($data['fecha_derivacion'] ?? ''),
-                    $this->cleanValue($data['fecha_estimada_op'] ?? ''),
-                    $this->cleanValue($data['estado'] ?? 'Pendiente'),
-                    $this->cleanValue($data['etapa'] ?? 'Ingreso'),
-                    $this->cleanValue($data['rut_usuario'] ?? ''),
-                    $this->cleanValue($data['rut_ingreso'] ?? ''),
-                    $this->cleanValue($data['rut_gestor'] ?? ''),
-                    $this->cleanValue($data['rut_tecnico'] ?? ''),
-                    $this->cleanValue($data['providencia'] ?? ''),
-                    $this->cleanValue($data['requerimiento_id'] ?? ''),
-                    $this->cleanValue($data['descripcion'] ?? ''),
-                    $this->cleanValue($data['imagen'] ?? ''),
-                    $this->cleanValue($data['localidad'] ?? ''),
-                    $this->cleanValue($data['tipo_ubicacion'] ?? ''),
-                    $this->cleanValue($data['ubicacion'] ?? ''),
-                    $this->cleanValue($data['latitud'] ?? ''),
-                    $this->cleanValue($data['longitud'] ?? '')
+                    $nextId,                                                    // A - id_solicitud
+                    $this->cleanValue($data['fecha_ingreso'] ?? date('Y-m-d')), // B - fecha_ingreso
+                    $this->cleanValue($data['fecha_termino'] ?? ''),           // C - fecha_termino
+                    $this->cleanValue($data['fecha_validacion'] ?? ''),        // D - fecha_validacion (NUEVO)
+                    $this->cleanValue($data['razon_validacion'] ?? ''),        // E - razon_validacion (NUEVO)
+                    $this->cleanValue($data['fecha_derivacion'] ?? ''),        // F - fecha_derivacion
+                    $this->cleanValue($data['derivacion'] ?? ''),              // G - derivacion (NUEVO)
+                    $this->cleanValue($data['fecha_estimada_op'] ?? ''),       // H - fecha_estimada_op
+                    $this->cleanValue($data['estado'] ?? 'En curso'),          // I - estado
+                    $this->cleanValue($data['etapa'] ?? 'Por validar ingreso'), // J - etapa
+                    $this->cleanValue($data['rut_usuario'] ?? ''),             // K - rut_usuario
+                    $this->cleanValue($data['rut_ingreso'] ?? ''),             // L - rut_ingreso
+                    $this->cleanValue($data['rut_gestor'] ?? ''),              // M - rut_gestor
+                    $this->cleanValue($data['rut_tecnico'] ?? ''),             // N - rut_tecnico
+                    $this->cleanValue($data['providencia'] ?? ''),             // O - providencia
+                    $this->cleanValue($data['requerimiento_id'] ?? ''),        // P - requerimiento_id
+                    $this->cleanValue($data['descripcion'] ?? ''),             // Q - descripcion
+                    $this->cleanValue($data['imagen'] ?? ''),                  // R - imagen
+                    $this->cleanValue($data['localidad'] ?? ''),               // S - localidad
+                    $this->cleanValue($data['tipo_ubicacion'] ?? ''),          // T - tipo_ubicacion
+                    $this->cleanValue($data['ubicacion'] ?? '')                // U - ubicacion
                 ]
             ];
             
@@ -202,30 +205,14 @@ class SolicitudService extends BaseService
             // Determinar la siguiente fila disponible
             $nextRow = count($solicitudes) + 2; // +1 para los encabezados, +1 para la siguiente fila
             
-            // Si la hoja está vacía o tiene menos de 2 filas, crear los encabezados
-            if (empty($solicitudes) || count($solicitudes) === 0) {
+            // Si la hoja está vacía, crear los encabezados
+            if (empty($solicitudes)) {
                 \Log::info('Creando encabezados porque la hoja está vacía');
                 $headers = [
-                    'id_solicitud', 
-                    'fecha_ingreso', 
-                    'fecha_termino', 
-                    'fecha_derivacion', 
-                    'fecha_estimada_op', 
-                    'estado', 
-                    'etapa', 
-                    'rut_usuario', 
-                    'rut_ingreso', 
-                    'rut_gestor', 
-                    'rut_tecnico', 
-                    'providencia', 
-                    'requerimiento_id', 
-                    'descripcion', 
-                    'imagen', 
-                    'localidad', 
-                    'tipo_ubicacion', 
-                    'ubicacion',
-                    'latitud',
-                    'longitud'
+                    'id_solicitud', 'fecha_ingreso', 'fecha_termino', 'fecha_validacion', 'razon_validacion',
+                    'fecha_derivacion', 'derivacion', 'fecha_estimada_op', 'estado', 'etapa',
+                    'rut_usuario', 'rut_ingreso', 'rut_gestor', 'rut_tecnico', 'providencia',
+                    'requerimiento_id', 'descripcion', 'imagen', 'localidad', 'tipo_ubicacion', 'ubicacion'
                 ];
                 
                 // Crear encabezados primero
@@ -235,7 +222,7 @@ class SolicitudService extends BaseService
                 
                 $this->sheets->spreadsheets_values->update(
                     $this->spreadsheetId, 
-                    'Solicitudes!A1:T1', 
+                    'Solicitudes!A1:U1', 
                     $headerBody, 
                     ['valueInputOption' => 'RAW']
                 );
@@ -243,15 +230,13 @@ class SolicitudService extends BaseService
                 \Log::info('Encabezados creados exitosamente');
             }
             
-            $range = "Solicitudes!A$nextRow:T$nextRow";
+            $range = "Solicitudes!A$nextRow:U$nextRow";
             
             $params = [
                 'valueInputOption' => 'RAW'
             ];
             
             \Log::info('Insertando en rango: ' . $range);
-            \Log::info('Valores a insertar (limpios):', $values[0]);
-            \Log::info('Tipo de cada valor:', array_map('gettype', $values[0]));
             
             $result = $this->sheets->spreadsheets_values->update(
                 $this->spreadsheetId, 
@@ -309,29 +294,30 @@ class SolicitudService extends BaseService
             $solicitudActualizada = array_merge($solicitudActual, $data);
             $solicitudActualizada['id_solicitud'] = $id; // Mantener el mismo ID
             
-            // Preparar datos para actualizar - SIN NULLS
+            // Preparar datos para actualizar con la nueva estructura
             $values = [
                 [
-                    $this->cleanValue($solicitudActualizada['id_solicitud']),
-                    $this->cleanValue($solicitudActualizada['fecha_ingreso'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['fecha_termino'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['fecha_derivacion'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['fecha_estimada_op'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['estado'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['etapa'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['rut_usuario'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['rut_ingreso'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['rut_gestor'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['rut_tecnico'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['providencia'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['requerimiento_id'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['descripcion'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['imagen'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['localidad'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['tipo_ubicacion'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['ubicacion'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['latitud'] ?? ''),
-                    $this->cleanValue($solicitudActualizada['longitud'] ?? '')
+                    $this->cleanValue($solicitudActualizada['id_solicitud']),        // A
+                    $this->cleanValue($solicitudActualizada['fecha_ingreso'] ?? ''), // B
+                    $this->cleanValue($solicitudActualizada['fecha_termino'] ?? ''), // C
+                    $this->cleanValue($solicitudActualizada['fecha_validacion'] ?? ''), // D - NUEVO
+                    $this->cleanValue($solicitudActualizada['razon_validacion'] ?? ''), // E - NUEVO
+                    $this->cleanValue($solicitudActualizada['fecha_derivacion'] ?? ''), // F
+                    $this->cleanValue($solicitudActualizada['derivacion'] ?? ''),       // G - NUEVO
+                    $this->cleanValue($solicitudActualizada['fecha_estimada_op'] ?? ''), // H
+                    $this->cleanValue($solicitudActualizada['estado'] ?? ''),           // I
+                    $this->cleanValue($solicitudActualizada['etapa'] ?? ''),            // J
+                    $this->cleanValue($solicitudActualizada['rut_usuario'] ?? ''),      // K
+                    $this->cleanValue($solicitudActualizada['rut_ingreso'] ?? ''),      // L
+                    $this->cleanValue($solicitudActualizada['rut_gestor'] ?? ''),       // M
+                    $this->cleanValue($solicitudActualizada['rut_tecnico'] ?? ''),      // N
+                    $this->cleanValue($solicitudActualizada['providencia'] ?? ''),      // O
+                    $this->cleanValue($solicitudActualizada['requerimiento_id'] ?? ''), // P
+                    $this->cleanValue($solicitudActualizada['descripcion'] ?? ''),      // Q
+                    $this->cleanValue($solicitudActualizada['imagen'] ?? ''),           // R
+                    $this->cleanValue($solicitudActualizada['localidad'] ?? ''),        // S
+                    $this->cleanValue($solicitudActualizada['tipo_ubicacion'] ?? ''),   // T
+                    $this->cleanValue($solicitudActualizada['ubicacion'] ?? '')         // U
                 ]
             ];
             
@@ -339,7 +325,7 @@ class SolicitudService extends BaseService
                 'values' => $values
             ]);
             
-            $range = "Solicitudes!A$rowIndex:T$rowIndex";
+            $range = "Solicitudes!A$rowIndex:U$rowIndex";
             
             $params = [
                 'valueInputOption' => 'RAW'
@@ -394,14 +380,14 @@ class SolicitudService extends BaseService
             
             // Preparar solicitud para eliminar la fila (reemplazando con valores vacíos)
             $values = [
-                array_fill(0, 20, '') // 20 celdas vacías para "eliminar" la fila
+                array_fill(0, 21, '') // 21 celdas vacías para "eliminar" la fila (A-U)
             ];
             
             $body = new \Google\Service\Sheets\ValueRange([
                 'values' => $values
             ]);
             
-            $range = "Solicitudes!A$rowIndex:T$rowIndex";
+            $range = "Solicitudes!A$rowIndex:U$rowIndex";
             
             $params = [
                 'valueInputOption' => 'RAW'
@@ -571,10 +557,14 @@ class SolicitudService extends BaseService
                 'por_estado' => [],
                 'por_etapa' => [],
                 'por_localidad' => [],
-                'promedio_tiempo_respuesta' => 0
+                'promedio_tiempo_respuesta' => 0,
+                'validadas' => 0,
+                'denegadas' => 0,
+                'derivadas_internas' => 0,
+                'derivadas_externas' => 0
             ];
             
-            // Contar por estado
+            // Contar por estado y otras métricas
             foreach ($solicitudes as $solicitud) {
                 $estado = $solicitud['estado'] ?? 'Sin estado';
                 $etapa = $solicitud['etapa'] ?? 'Sin etapa';
@@ -597,6 +587,24 @@ class SolicitudService extends BaseService
                     $estadisticas['por_localidad'][$localidad] = 0;
                 }
                 $estadisticas['por_localidad'][$localidad]++;
+                
+                // Contar validaciones
+                if (!empty($solicitud['fecha_validacion'])) {
+                    if (empty($solicitud['razon_validacion'])) {
+                        $estadisticas['validadas']++;
+                    } else {
+                        $estadisticas['denegadas']++;
+                    }
+                }
+                
+                // Contar derivaciones
+                if (!empty($solicitud['derivacion'])) {
+                    if (strpos($solicitud['derivacion'], 'Interno:') === 0) {
+                        $estadisticas['derivadas_internas']++;
+                    } else if (strpos($solicitud['derivacion'], 'Externo:') === 0) {
+                        $estadisticas['derivadas_externas']++;
+                    }
+                }
                 
                 // Calcular tiempos de respuesta para solicitudes terminadas
                 if (isset($solicitud['fecha_termino']) && !empty($solicitud['fecha_termino']) &&

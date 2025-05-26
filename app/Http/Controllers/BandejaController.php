@@ -130,6 +130,110 @@ class BandejaController extends Controller
     }
 
     /**
+     * Valida el ingreso de una solicitud
+     */
+    public function validarIngreso(Request $request, $id)
+    {
+        if (!session('user_id')) {
+            return redirect()->route('login');
+        }
+
+        $request->validate([
+            'accion_validacion' => 'required|in:validar,denegar',
+            'razon_validacion' => 'required_if:accion_validacion,denegar|nullable|string|max:500',
+        ]);
+
+        try {
+            $data = [
+                'fecha_validacion' => date('Y-m-d'),
+            ];
+
+            if ($request->accion_validacion === 'validar') {
+                // Validar: cambiar etapa a "Por derivar a Técnico"
+                $data['etapa'] = 'Por derivar a Técnico';
+                $data['razon_validacion'] = ''; // Limpiar razón si había una anterior
+                $mensaje = 'Solicitud validada correctamente.';
+            } else {
+                // Denegar: mantener etapa pero agregar razón
+                $data['etapa'] = 'Denegada';
+                $data['estado'] = 'Denegada';
+                $data['razon_validacion'] = $request->razon_validacion;
+                $mensaje = 'Solicitud denegada correctamente.';
+            }
+
+            $this->solicitudService->updateSolicitud($id, $data);
+            
+            return redirect()->route('bandeja.index')
+                ->with('success', $mensaje);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al validar ingreso: ' . $e->getMessage());
+            return back()->with('error', 'Error al procesar la validación.');
+        }
+    }
+
+    /**
+     * Reasigna una solicitud a otro departamento o entidad externa
+     */
+    public function reasignarSolicitud(Request $request, $id)
+    {
+        if (!session('user_id')) {
+            return redirect()->route('login');
+        }
+
+        $request->validate([
+            'tipo_reasignacion' => 'required|in:interno,externo',
+            'departamento_destino' => 'required_if:tipo_reasignacion,interno|nullable|integer',
+            'destino_externo' => 'required_if:tipo_reasignacion,externo|nullable|string|max:255',
+            'motivo_reasignacion' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $data = [
+                'fecha_derivacion' => date('Y-m-d'),
+                'estado' => 'Derivada',
+                'etapa' => 'Derivada',
+            ];
+
+            if ($request->tipo_reasignacion === 'interno') {
+                // Reasignación interna - obtener nombre del departamento
+                $departamento = $this->departamentoService->getDepartamentoById($request->departamento_destino);
+                if (!$departamento) {
+                    return back()->with('error', 'Departamento de destino no encontrado.');
+                }
+                
+                // Obtener nuevo requerimiento del departamento de destino
+                $requerimientosDestino = $this->requerimientoService->getByDepartamento($request->departamento_destino);
+                if (!empty($requerimientosDestino)) {
+                    // Tomar el primer requerimiento disponible del departamento
+                    $data['requerimiento_id'] = $requerimientosDestino[0]['id_requerimiento'];
+                }
+                
+                $data['derivacion'] = "Interno: {$departamento['nombre']}";
+                $mensaje = "Solicitud reasignada internamente a {$departamento['nombre']}.";
+            } else {
+                // Reasignación externa
+                $data['derivacion'] = "Externo: {$request->destino_externo}";
+                $mensaje = "Solicitud reasignada externamente a {$request->destino_externo}.";
+            }
+
+            // Agregar motivo si se proporcionó
+            if ($request->motivo_reasignacion) {
+                $data['derivacion'] .= " - Motivo: {$request->motivo_reasignacion}";
+            }
+
+            $this->solicitudService->updateSolicitud($id, $data);
+            
+            return redirect()->route('bandeja.index')
+                ->with('success', $mensaje);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al reasignar solicitud: ' . $e->getMessage());
+            return back()->with('error', 'Error al reasignar la solicitud.');
+        }
+    }
+
+    /**
      * Filtra solicitudes según el rol y departamento del usuario
      */
     private function filtrarSolicitudesPorRolYDepartamento($solicitudes, $rol, $departamentoId)
@@ -493,6 +597,69 @@ class BandejaController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error al cambiar estado: ' . $e->getMessage());
             return back()->with('error', 'Error al cambiar el estado.');
+        }
+    }
+
+    /**
+     * Deriva una solicitud a un técnico específico
+     */
+    public function derivarATecnico(Request $request, $id)
+    {
+        if (!session('user_id')) {
+            return redirect()->route('login');
+        }
+
+        $request->validate([
+            'tecnico_asignado' => 'required|string',
+            'observaciones_derivacion' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            // Verificar que el técnico existe y tiene el rol correcto
+            $tecnico = $this->funcionarioService->getFuncionarioById($request->tecnico_asignado);
+            if (!$tecnico) {
+                return back()->with('error', 'El técnico seleccionado no existe.');
+            }
+
+            if ($tecnico['rol'] !== 'tecnico') {
+                return back()->with('error', 'El funcionario seleccionado no tiene el rol de técnico.');
+            }
+
+            // Obtener la solicitud actual
+            $solicitud = $this->solicitudService->getSolicitudById($id);
+            if (!$solicitud) {
+                return back()->with('error', 'Solicitud no encontrada.');
+            }
+
+            // Preparar datos para actualizar
+            $data = [
+                'rut_tecnico' => $request->tecnico_asignado,
+                'fecha_derivacion' => date('Y-m-d'),
+                'estado' => 'En proceso',
+                'etapa' => 'Asignada a Técnico',
+            ];
+
+            // Agregar observaciones si se proporcionaron
+            if (!empty($request->observaciones_derivacion)) {
+                // Si ya existe una derivación, agregar las observaciones
+                $derivacionActual = $solicitud['derivacion'] ?? '';
+                if (!empty($derivacionActual)) {
+                    $data['derivacion'] = $derivacionActual . ' - Observaciones: ' . $request->observaciones_derivacion;
+                } else {
+                    $data['derivacion'] = 'Derivada a técnico - Observaciones: ' . $request->observaciones_derivacion;
+                }
+            }
+
+            $this->solicitudService->updateSolicitud($id, $data);
+            
+            $mensaje = "Solicitud derivada correctamente al técnico: {$tecnico['nombre']}.";
+            
+            return redirect()->route('bandeja.index')
+                ->with('success', $mensaje);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al derivar solicitud a técnico: ' . $e->getMessage());
+            return back()->with('error', 'Error al derivar la solicitud.');
         }
     }
 }

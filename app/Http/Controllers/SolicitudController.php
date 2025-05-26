@@ -172,8 +172,6 @@ class SolicitudController extends Controller
             'ubicacion' => 'required|string|max:50',
             'providencia' => 'nullable|integer',
             'imagen' => 'nullable|image|max:5120', // Máx 5MB
-            'latitud' => 'nullable|numeric',
-            'longitud' => 'nullable|numeric',
         ]);
 
         try {
@@ -198,11 +196,9 @@ class SolicitudController extends Controller
                 'tipo_ubicacion' => $request->tipo_ubicacion,
                 'ubicacion' => $request->ubicacion,
                 'providencia' => $request->providencia ?: '', // Convertir null a cadena vacía
-                'estado' => 'Pendiente',
-                'etapa' => 'Ingreso',
-                'fecha_ingreso' => date('Y-m-d'), // Usar fecha_ingreso en lugar de fecha_inicio
-                'latitud' => $request->latitud ?: '', // Convertir null a cadena vacía
-                'longitud' => $request->longitud ?: '', // Convertir null a cadena vacía
+                'estado' => 'En curso',
+                'etapa' => 'Por validar ingreso',
+                'fecha_ingreso' => date('Y-m-d'), 
             ];
             
             \Log::info('Datos preparados para crear solicitud:', $data);

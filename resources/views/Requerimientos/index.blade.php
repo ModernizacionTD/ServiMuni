@@ -8,13 +8,14 @@
 <div class="table-view-container filter-view-container">
     <link rel="stylesheet" href="{{ asset('css/tabla.css') }}">
     <link rel="stylesheet" href="{{ asset('css/filtros.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/button.css') }}">
 
     <div class="card">
         <div class="card-header filter-card-header">
             <h3 class="card-title filter-card-title">
                 <i class="fas fa-clipboard-list me-2"></i>Lista de Requerimientos
             </h3>
-            <a href="{{ route('requerimientos.create') }}" class="btn btn-add filter-add-btn">
+            <a href="{{ route('requerimientos.create') }}" class="btn btn-header">
                 <i class="fas fa-plus"></i> Nuevo Requerimiento
             </a>
         </div>

@@ -8,6 +8,8 @@
 <link rel="stylesheet" href="{{ asset('css/tabla.css') }}">
 <link rel="stylesheet" href="{{ asset('css/filtros.css') }}">
 <link rel="stylesheet" href="{{ asset('css/bandeja.css') }}">
+<link rel="stylesheet" href="{{ asset('css/button.css') }}">
+
 <div class="table-view-container filter-view-container">
     <!-- Header con estadísticas -->
     <div class="row mb-4">
@@ -53,12 +55,11 @@
                 <span class="badge bg-white text-primary ms-2">{{ count($solicitudes) }}</span>
             </h3>
             <div class="d-flex gap-2">
-                <span class="badge bg-info">{{ ucfirst($rol) }}</span>
-                <button class="btn btn-sm btn-outline-primary" id="refreshBtn">
+                <button class="btn btn-sm btn-header" id="refreshBtn">
                     <i class="fas fa-sync-alt"></i> Actualizar
                 </button>
             </div>
-        </div>
+        </div> 
         
         <!-- Barra de filtros -->
         <div class="filters-bar">
@@ -77,9 +78,9 @@
                     <div class="filter-item">
                         <select name="estado" class="form-select filter-select">
                             <option value="">Todos los estados</option>
-                            <option value="Pendiente" {{ $filtros['estado'] == 'Pendiente' ? 'selected' : '' }}>Pendiente</option>
-                            <option value="En proceso" {{ $filtros['estado'] == 'En proceso' ? 'selected' : '' }}>En proceso</option>
-                            <option value="Completado" {{ $filtros['estado'] == 'Completado' ? 'selected' : '' }}>Completado</option>
+                            <option value="En curso" {{ $filtros['estado'] == 'En curso' ? 'selected' : '' }}>En curso</option>
+                            <option value="En proceso" {{ $filtros['estado'] == 'Finalizada' ? 'selected' : '' }}>Finalizadas</option>
+                            <option value="Completado" {{ $filtros['estado'] == 'Derivada' ? 'selected' : '' }}>Derivadas</option>
                         </select>
                     </div>
                     
@@ -87,9 +88,9 @@
                     <div class="filter-item">
                         <select name="etapa" class="form-select filter-select">
                             <option value="">Todas las etapas</option>
-                            <option value="Ingreso" {{ $filtros['etapa'] == 'Ingreso' ? 'selected' : '' }}>Ingreso</option>
-                            <option value="Asignada" {{ $filtros['etapa'] == 'Asignada' ? 'selected' : '' }}>Asignada</option>
-                            <option value="En proceso" {{ $filtros['etapa'] == 'En proceso' ? 'selected' : '' }}>En proceso</option>
+                            <option value="Por validar ingreso" {{ $filtros['etapa'] == 'Por validar ingreso' ? 'selected' : '' }}>Por validar ingreso</option>
+                            <option value="Por derivar a Técnico" {{ $filtros['etapa'] == 'Por derivar a Técnico' ? 'selected' : '' }}>Por derivar a Técnico</option>
+                            <option value="En espera de Informe" {{ $filtros['etapa'] == 'En espera de Informe' ? 'selected' : '' }}>En espera de Informe</option>
                             <option value="Revisión" {{ $filtros['etapa'] == 'Revisión' ? 'selected' : '' }}>Revisión</option>
                             <option value="Completada" {{ $filtros['etapa'] == 'Completada' ? 'selected' : '' }}>Completada</option>
                         </select>
@@ -158,7 +159,9 @@
                             <th width="12%">Ubicación</th>
                             <th width="10%">Fecha</th>
                             <th width="8%">Estado</th>
+                            <th width="10%">Etapa</th>
                             <th width="15%">Acciones</th>
+                            
                         </tr>
                     </thead>
                     <tbody>
@@ -279,13 +282,22 @@
                                         <span class="status-badge
                                             @if($solicitud['estado'] == 'Completado') status-success
                                             @elseif($solicitud['estado'] == 'En proceso') bg-primary text-white
-                                            @elseif($solicitud['estado'] == 'Pendiente') bg-warning text-dark
+                                            @elseif($solicitud['estado'] == 'En curso') bg-warning text-dark
                                             @else status-secondary @endif">
                                             {{ $solicitud['estado'] ?? 'Sin estado' }}
                                         </span>
-                                        
-                                        @if($solicitud['etapa'] && $solicitud['etapa'] !== $solicitud['estado'])
-                                            <small class="text-muted">{{ $solicitud['etapa'] }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column gap-1">
+                                        @if($solicitud['etapa'])
+                                            <span class="status-badge 
+                                                @if($solicitud['etapa'] == 'Por validar ingreso') bg-warning text-dark
+                                                @else bg-info text-white @endif">
+                                                {{ $solicitud['etapa'] }}
+                                            </span>
+                                        @else
+                                            <span class="status-badge bg-warning text-dark">Sin etapa</span>
                                         @endif
                                     </div>
                                 </td>
@@ -303,6 +315,9 @@
                                                 data-ubicacion="{{ $solicitud['ubicacion'] ?? '' }}"
                                                 data-tipo-ubicacion="{{ $solicitud['tipo_ubicacion'] ?? '' }}"
                                                 data-providencia="{{ $solicitud['providencia'] ?? '' }}"
+                                                data-fecha-validacion="{{ $solicitud['fecha_validacion'] ?? '' }}"
+                                                data-razon-validacion="{{ $solicitud['razon_validacion'] ?? '' }}"
+                                                data-derivacion="{{ $solicitud['derivacion'] ?? '' }}"
                                                 data-requerimiento="{{ $requerimiento['nombre'] ?? 'No especificado' }}"
                                                 data-departamento="{{ $departamento['nombre'] ?? 'No especificado' }}"
                                                 data-usuario="{{ $usuario ? $usuario['nombre'] . ' ' . $usuario['apellidos'] : 'No encontrado' }}"
@@ -325,59 +340,6 @@
                                             </form>
                                         @endif
                                         
-                                        <!-- Cambiar estado -->
-                                        @if(
-                                            ($rol == 'gestor' && $solicitud['rut_gestor'] == session('user_id')) ||
-                                            ($rol == 'tecnico' && $solicitud['rut_tecnico'] == session('user_id')) ||
-                                            $rol == 'admin'
-                                        )
-                                            <div class="dropdown">
-                                                <button class="action-btn btn-warning dropdown-toggle" type="button" 
-                                                        data-bs-toggle="dropdown" title="Cambiar estado">
-                                                    <i class="fas fa-exchange-alt"></i>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    @if($solicitud['estado'] !== 'En proceso')
-                                                        <li>
-                                                            <form method="POST" action="{{ route('bandeja.cambiar-estado', $solicitud['id_solicitud']) }}">
-                                                                @csrf
-                                                                <input type="hidden" name="estado" value="En proceso">
-                                                                <input type="hidden" name="etapa" value="En proceso">
-                                                                <button class="dropdown-item" type="submit">
-                                                                    <i class="fas fa-play text-primary"></i> En proceso
-                                                                </button>
-                                                            </form>
-                                                        </li>
-                                                    @endif
-                                                    
-                                                    @if($solicitud['estado'] !== 'Completado')
-                                                        <li>
-                                                            <form method="POST" action="{{ route('bandeja.cambiar-estado', $solicitud['id_solicitud']) }}">
-                                                                @csrf
-                                                                <input type="hidden" name="estado" value="Completado">
-                                                                <input type="hidden" name="etapa" value="Completada">
-                                                                <button class="dropdown-item" type="submit">
-                                                                    <i class="fas fa-check text-success"></i> Completar
-                                                                </button>
-                                                            </form>
-                                                        </li>
-                                                    @endif
-                                                    
-                                                    @if($solicitud['estado'] === 'Completado')
-                                                        <li>
-                                                            <form method="POST" action="{{ route('bandeja.cambiar-estado', $solicitud['id_solicitud']) }}">
-                                                                @csrf
-                                                                <input type="hidden" name="estado" value="En proceso">
-                                                                <input type="hidden" name="etapa" value="En proceso">
-                                                                <button class="dropdown-item" type="submit">
-                                                                    <i class="fas fa-undo text-info"></i> Reabrir
-                                                                </button>
-                                                            </form>
-                                                        </li>
-                                                    @endif
-                                                </ul>
-                                            </div>
-                                        @endif
                                         
                                         <!-- Editar (solo admin o asignado) -->
                                         @if(
@@ -395,7 +357,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8">
+                                <td colspan="9">
                                     <div class="table-empty-state">
                                         <i class="fas fa-inbox"></i>
                                         <p class="table-empty-state-text">
@@ -441,15 +403,32 @@
         </div>
         
         <div class="user-profile-header">
-            <div class="user-avatar">
-                <span id="solicitudIcon"><i class="fas fa-clipboard-list"></i></span>
+            <div class="user-info-container">
+                <div class="user-avatar">
+                    <span id="solicitudIcon"><i class="fas fa-clipboard-list"></i></span>
+                </div>
+                <div class="user-info">
+                    <h3 id="solicitudTitle"></h3>
+                    <p id="solicitudSubtitle" class="user-type"></p>
+                </div>
             </div>
-            <div class="user-info">
-                <h3 id="solicitudTitle"></h3>
-                <p id="solicitudSubtitle" class="user-type"></p>
+            
+            <!-- NUEVO: Botones en el header -->
+            <div class="header-actions" id="headerValidacionButtons" style="display: none;">
+                <button type="button" class="btn btn-success header-btn" id="validarIngresoBtn">
+                    <i class="fas fa-check"></i> Validar Ingreso
+                </button>
+                <button type="button" class="btn btn-warning header-btn" id="reasignarBtn">
+                    <i class="fas fa-share"></i> Reasignar
+                </button>
+            </div>
+            <div class="header-actions" id="headerDerivacionButtons" style="display: none;">
+                <button type="button" class="btn btn-info header-btn" id="derivarTecnicoBtn">
+                    <i class="fas fa-user-cog"></i> Derivar a Técnico
+                </button>
             </div>
         </div>
-        
+                
         <div class="user-details-container">
             <div class="details-section">
                 <h4 class="section-title"><i class="fas fa-info-circle"></i> Información General</h4>
@@ -473,6 +452,36 @@
                     <div class="detail-item detail-full-width">
                         <span class="detail-label">Descripción</span>
                         <span class="detail-value" id="solicitudDescripcion"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección de Validación (solo si aplica) -->
+            <div class="details-section" id="validacionSection" style="display: none;">
+                <h4 class="section-title"><i class="fas fa-check-circle"></i> Información de Validación</h4>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Fecha de Validación</span>
+                        <span class="detail-value" id="solicitudFechaValidacion"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Estado de Validación</span>
+                        <span class="detail-value" id="solicitudEstadoValidacion"></span>
+                    </div>
+                    <div class="detail-item detail-full-width">
+                        <span class="detail-label">Razón</span>
+                        <span class="detail-value" id="solicitudRazonValidacion"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección de Derivación (solo si aplica) -->
+            <div class="details-section" id="derivacionSection" style="display: none;">
+                <h4 class="section-title"><i class="fas fa-share"></i> Información de Derivación</h4>
+                <div class="details-grid">
+                    <div class="detail-item detail-full-width">
+                        <span class="detail-label">Derivación</span>
+                        <span class="detail-value" id="solicitudDerivacion"></span>
                     </div>
                 </div>
             </div>
@@ -532,6 +541,7 @@
             <button type="button" class="btn btn-secondary" id="closeSolicitudPanelBtn2">
                 <i class="fas fa-times"></i> Cerrar
             </button>
+            
             <a href="#" id="editSolicitudBtn" class="btn btn-primary">
                 <i class="fas fa-edit"></i> Editar Solicitud
             </a>
@@ -539,16 +549,418 @@
     </div>
 </div>
 
+<!-- Modal de Validación de Ingreso -->
+<div class="modal-custom" id="validacionModalCustom">
+    <div class="modal-custom-content">
+        <div class="modal-custom-header bg-primary">
+            <h5>
+                <i class="fas fa-check-circle"></i> Validar Ingreso de Solicitud
+            </h5>
+            <button type="button" class="modal-custom-close" id="closeValidacionModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-custom-body">
+            <!-- Información de la solicitud -->
+            <div class="modal-info-section">
+                <div class="modal-info-row">
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Solicitud ID</span>
+                        <span class="modal-info-value" id="validacionSolicitudIdDisplay"></span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Usuario</span>
+                        <span class="modal-info-value" id="validacionUsuarioDisplay"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="validacionFormCustom" method="POST">
+                @csrf
+                <input type="hidden" id="validacionSolicitudIdInput" name="solicitud_id">
+                
+                <div class="modal-form-section">
+                    <label class="form-label fw-bold mb-3">¿Qué acción deseas realizar?</label>
+                    
+                    <div class="form-check-custom">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="accion_validacion" id="validarCustom" value="validar" checked>
+                            <label class="form-check-label-custom text-success fw-bold" for="validarCustom">
+                                <i class="fas fa-check-circle"></i> Validar - Aprobar la solicitud
+                            </label>
+                            <div class="form-help-text">La solicitud pasará a la etapa "Por derivar a Técnico"</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-check-custom">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="accion_validacion" id="denegarCustom" value="denegar">
+                            <label class="form-check-label-custom text-danger fw-bold" for="denegarCustom">
+                                <i class="fas fa-times-circle"></i> Denegar - Rechazar la solicitud
+                            </label>
+                            <div class="form-help-text">Debes proporcionar una razón para el rechazo</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-form-section" id="razonDenegacionDivCustom" style="display: none;">
+                    <label for="razon_validacion_custom" class="form-label fw-bold">Razón de la denegación <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="razon_validacion_custom" name="razon_validacion" rows="4" 
+                              placeholder="Explique por qué se está denegando esta solicitud..."></textarea>
+                    <div class="form-text">Debe proporcionar una explicación clara del motivo del rechazo.</div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-custom-footer">
+            <button type="button" class="modal-btn modal-btn-secondary" id="cancelValidacionBtn">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="button" class="modal-btn modal-btn-primary" id="confirmarValidacionBtnCustom">
+                <i class="fas fa-save"></i> Confirmar Validación
+            </button>
+        </div>
+    </div>
+</div>
 
+<!-- Modal de Reasignación -->
+<div class="modal-custom" id="reasignacionModalCustom">
+    <div class="modal-custom-content">
+        <div class="modal-custom-header bg-warning">
+            <h5>
+                <i class="fas fa-share"></i> Reasignar Solicitud
+            </h5>
+            <button type="button" class="modal-custom-close" id="closeReasignacionModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-custom-body">
+            <!-- Información de la solicitud -->
+            <div class="modal-info-section">
+                <div class="modal-info-row">
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Solicitud ID</span>
+                        <span class="modal-info-value" id="reasignacionSolicitudIdDisplay"></span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Usuario</span>
+                        <span class="modal-info-value" id="reasignacionUsuarioDisplay"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="reasignacionFormCustom" method="POST">
+                @csrf
+                <input type="hidden" id="reasignacionSolicitudIdInput" name="solicitud_id">
+                
+                <div class="modal-form-section">
+                    <label class="form-label fw-bold mb-3">¿Dónde deseas reasignar la solicitud?</label>
+                    
+                    <div class="form-check-custom">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo_reasignacion" id="internoCustom" value="interno" checked>
+                            <label class="form-check-label-custom fw-bold" for="internoCustom">
+                                <i class="fas fa-building"></i> Derivación Interna
+                            </label>
+                            <div class="form-help-text">Reasignar a otro departamento del sistema</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-check-custom">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo_reasignacion" id="externoCustom" value="externo">
+                            <label class="form-check-label-custom fw-bold" for="externoCustom">
+                                <i class="fas fa-external-link-alt"></i> Derivación Externa
+                            </label>
+                            <div class="form-help-text">Reasignar fuera del sistema</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-form-section" id="departamentoInternoDivCustom">
+                    <label for="departamento_destino_custom" class="form-label fw-bold">Departamento de Destino <span class="text-danger">*</span></label>
+                    <select class="form-select" id="departamento_destino_custom" name="departamento_destino">
+                        <option value="">Seleccione un departamento...</option>
+                        @foreach($departamentos as $dept)
+                            <option value="{{ $dept['id'] }}">{{ $dept['nombre'] }}</option>
+                        @endforeach
+                    </select>
+                    <div class="form-text">Seleccione el departamento al cual desea reasignar la solicitud.</div>
+                </div>
+                
+                <div class="modal-form-section" id="destinoExternoDivCustom" style="display: none;">
+                    <label for="destino_externo_custom" class="form-label fw-bold">Destino Externo <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="destino_externo_custom" name="destino_externo" 
+                           placeholder="Ej: Ministerio de Salud, SERVIU, etc.">
+                    <div class="form-text">Indique el organismo o entidad externa donde se reasignará la solicitud.</div>
+                </div>
+                
+                <div class="modal-form-section">
+                    <label for="motivo_reasignacion_custom" class="form-label fw-bold">Motivo de la Reasignación</label>
+                    <textarea class="form-control" id="motivo_reasignacion_custom" name="motivo_reasignacion" rows="3" 
+                              placeholder="Opcional: Explique por qué se está reasignando esta solicitud..."></textarea>
+                    <div class="form-text">Campo opcional para agregar contexto sobre la reasignación.</div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-custom-footer">
+            <button type="button" class="modal-btn modal-btn-secondary" id="cancelReasignacionBtn">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="button" class="modal-btn modal-btn-warning" id="confirmarReasignacionBtnCustom">
+                <i class="fas fa-share"></i> Confirmar Reasignación
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-custom" id="derivacionTecnicoModalCustom">
+    <div class="modal-custom-content">
+        <div class="modal-custom-header bg-info">
+            <h5>
+                <i class="fas fa-user-cog"></i> Derivar Solicitud a Técnico
+            </h5>
+            <button type="button" class="modal-custom-close" id="closeDerivacionTecnicoModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-custom-body">
+            <!-- Información de la solicitud -->
+            <div class="modal-info-section">
+                <div class="modal-info-row">
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Solicitud ID</span>
+                        <span class="modal-info-value" id="derivacionTecnicoSolicitudIdDisplay"></span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Usuario</span>
+                        <span class="modal-info-value" id="derivacionTecnicoUsuarioDisplay"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="derivacionTecnicoFormCustom" method="POST">
+                @csrf
+                <input type="hidden" id="derivacionTecnicoSolicitudIdInput" name="solicitud_id">
+                
+                <div class="modal-form-section">
+                    <label for="tecnico_asignado" class="form-label fw-bold">Seleccionar Técnico <span class="text-danger">*</span></label>
+                    
+                    <!-- Tabla de técnicos -->
+                    <div class="tecnicos-container">
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-hover">
+                                <thead style="position: sticky; top: 0; background: #f8f9fa;">
+                                    <tr>
+                                        <th width="50px">Seleccionar</th>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Departamento</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tecnicosTableBody">
+                                    <!-- Los técnicos se cargarán dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="form-text mt-2">
+                        <i class="fas fa-info-circle"></i> 
+                        Seleccione el técnico que se encargará de procesar esta solicitud.
+                    </div>
+                </div>
+                
+                <div class="modal-form-section">
+                    <label for="observaciones_derivacion" class="form-label fw-bold">Observaciones (Opcional)</label>
+                    <textarea class="form-control" id="observaciones_derivacion" name="observaciones_derivacion" rows="3" 
+                              placeholder="Agregue cualquier observación o instrucción especial para el técnico..."></textarea>
+                    <div class="form-text">Campo opcional para proporcionar contexto adicional al técnico asignado.</div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-custom-footer">
+            <button type="button" class="modal-btn modal-btn-secondary" id="cancelDerivacionTecnicoBtn">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="button" class="modal-btn modal-btn-info" id="confirmarDerivacionTecnicoBtn">
+                <i class="fas fa-user-cog"></i> Confirmar Derivación
+            </button>
+        </div>
+    </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Variables globales
+    let solicitudActualId = null;
+    let solicitudActualEtapa = null;
+    let funcionariosTecnicos = [];
+    
     // ===== FUNCIONALIDAD DEL MODAL DE DETALLES =====
     const solicitudDetailsPanel = document.getElementById('solicitudDetailsPanel');
     const viewButtons = document.querySelectorAll('.view-solicitud-details');
     const closeSolicitudPanelBtn = document.getElementById('closeSolicitudPanelBtn');
     const closeSolicitudPanelBtn2 = document.getElementById('closeSolicitudPanelBtn2');
+    const derivarTecnicoBtn = document.getElementById('derivarTecnicoBtn');
+    const derivacionTecnicoModalCustom = document.getElementById('derivacionTecnicoModalCustom');
+    const derivacionTecnicoFormCustom = document.getElementById('derivacionTecnicoFormCustom');
+    const confirmarDerivacionTecnicoBtn = document.getElementById('confirmarDerivacionTecnicoBtn');
+    const tecnicosTableBody = document.getElementById('tecnicosTableBody');
     
+    cargarTecnicos();
+
+    // Función para cargar técnicos
+    async function cargarTecnicos() {
+        try {
+            // Aquí deberías hacer una llamada AJAX para obtener los técnicos
+            // Por ahora, usamos los datos que ya tienes en la vista
+            const response = await fetch('/api/funcionarios/tecnicos');
+            if (response.ok) {
+                funcionariosTecnicos = await response.json();
+            }
+        } catch (error) {
+            console.log('Error al cargar técnicos:', error);
+            // Fallback: usar datos de la vista si están disponibles
+            if (typeof funcionarios !== 'undefined') {
+                funcionariosTecnicos = Object.values(funcionarios).filter(f => f.rol === 'tecnico');
+            }
+        }
+    }
+
+    // Función para mostrar técnicos en la tabla
+    function mostrarTecnicos() {
+        if (!funcionariosTecnicos || funcionariosTecnicos.length === 0) {
+            tecnicosTableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="no-tecnicos-message">
+                        <i class="fas fa-user-times"></i>
+                        <p>No hay técnicos disponibles en el sistema.</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        const tecnicosHTML = funcionariosTecnicos.map(tecnico => `
+            <tr data-tecnico-id="${tecnico.id}" onclick="seleccionarTecnico('${tecnico.id}')">
+                <td>
+                    <input type="radio" name="tecnico_asignado" value="${tecnico.id}" id="tecnico_${tecnico.id}">
+                </td>
+                <td>
+                    <div class="tecnico-nombre">${tecnico.nombre}</div>
+                </td>
+                <td>
+                    <div class="tecnico-email">${tecnico.email}</div>
+                </td>
+                <td>
+                    <div class="tecnico-departamento">${obtenerNombreDepartamento(tecnico.departamento_id)}</div>
+                </td>
+            </tr>
+        `).join('');
+        
+        tecnicosTableBody.innerHTML = tecnicosHTML;
+    }
+    
+    // Función para seleccionar técnico
+    function seleccionarTecnico(tecnicoId) {
+        // Quitar selección anterior
+        document.querySelectorAll('.tecnicos-container tr').forEach(tr => {
+            tr.classList.remove('selected');
+        });
+        
+        // Seleccionar técnico
+        const radio = document.getElementById(`tecnico_${tecnicoId}`);
+        if (radio) {
+            radio.checked = true;
+            radio.closest('tr').classList.add('selected');
+        }
+    }
+    
+    // Función helper para obtener nombre del departamento
+    function obtenerNombreDepartamento(departamentoId) {
+        if (typeof departamentos !== 'undefined' && departamentos[departamentoId]) {
+            return departamentos[departamentoId].nombre;
+        }
+        return 'Sin departamento';
+    }
+    
+    // Abrir modal de derivación a técnico
+    if (derivarTecnicoBtn) {
+        derivarTecnicoBtn.addEventListener('click', function() {
+            // Llenar datos del modal
+            document.getElementById('derivacionTecnicoSolicitudIdDisplay').textContent = solicitudActualId;
+            document.getElementById('derivacionTecnicoUsuarioDisplay').textContent = 
+                document.getElementById('solicitudUsuario').textContent;
+            document.getElementById('derivacionTecnicoSolicitudIdInput').value = solicitudActualId;
+            
+            // Resetear formulario
+            document.querySelectorAll('input[name="tecnico_asignado"]').forEach(radio => {
+                radio.checked = false;
+            });
+            document.querySelectorAll('.tecnicos-container tr').forEach(tr => {
+                tr.classList.remove('selected');
+            });
+            document.getElementById('observaciones_derivacion').value = '';
+            
+            // Mostrar técnicos
+            mostrarTecnicos();
+            
+            showModalCustom(derivacionTecnicoModalCustom);
+        });
+    }
+    
+    // Cerrar modal de derivación a técnico
+    document.getElementById('closeDerivacionTecnicoModal')?.addEventListener('click', () => {
+        hideModalCustom(derivacionTecnicoModalCustom);
+    });
+    
+    document.getElementById('cancelDerivacionTecnicoBtn')?.addEventListener('click', () => {
+        hideModalCustom(derivacionTecnicoModalCustom);
+    });
+    
+    // Confirmar derivación a técnico
+    if (confirmarDerivacionTecnicoBtn) {
+        confirmarDerivacionTecnicoBtn.addEventListener('click', function() {
+            const tecnicoSeleccionado = document.querySelector('input[name="tecnico_asignado"]:checked');
+            
+            // Validar que se haya seleccionado un técnico
+            if (!tecnicoSeleccionado) {
+                alert('Debe seleccionar un técnico para derivar la solicitud.');
+                return;
+            }
+            
+            // Obtener datos del técnico seleccionado
+            const tecnicoId = tecnicoSeleccionado.value;
+            const tecnico = funcionariosTecnicos.find(t => t.id == tecnicoId);
+            const nombreTecnico = tecnico ? tecnico.nombre : 'Técnico seleccionado';
+            
+            // Confirmar acción
+            if (confirm(`¿Está seguro de que desea derivar esta solicitud a: ${nombreTecnico}?`)) {
+                // Enviar formulario
+                derivacionTecnicoFormCustom.action = `/bandeja/${solicitudActualId}/derivar-tecnico`;
+                derivacionTecnicoFormCustom.submit();
+            }
+        });
+    }
+    
+    // Cerrar modal de derivación con Escape y click en fondo
+    if (derivacionTecnicoModalCustom) {
+        derivacionTecnicoModalCustom.addEventListener('click', function(event) {
+            if (event.target === derivacionTecnicoModalCustom) {
+                hideModalCustom(derivacionTecnicoModalCustom);
+            }
+        });
+    }
+    
+    // Hacer la función global para que funcione el onclick
+    window.seleccionarTecnico = seleccionarTecnico;
+
     function showSolicitudDetails() {
         solicitudDetailsPanel.classList.add('show');
         document.body.style.overflow = 'hidden';
@@ -575,11 +987,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 ubicacion: this.getAttribute('data-ubicacion'),
                 tipoUbicacion: this.getAttribute('data-tipo-ubicacion'),
                 providencia: this.getAttribute('data-providencia'),
+                fechaValidacion: this.getAttribute('data-fecha-validacion'),
+                razonValidacion: this.getAttribute('data-razon-validacion'),
+                derivacion: this.getAttribute('data-derivacion'),
                 requerimiento: this.getAttribute('data-requerimiento'),
                 departamento: this.getAttribute('data-departamento'),
                 usuario: this.getAttribute('data-usuario'),
                 rut: this.getAttribute('data-rut')
             };
+            
+            // Guardar datos globales
+            solicitudActualId = solicitudData.id;
+            solicitudActualEtapa = solicitudData.etapa;
             
             // Llenar datos en el panel
             document.getElementById('solicitudTitle').textContent = `Solicitud #${solicitudData.id}`;
@@ -598,10 +1017,53 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('solicitudTipoUbicacion').textContent = solicitudData.tipoUbicacion || 'No especificado';
             document.getElementById('solicitudUbicacion').textContent = solicitudData.ubicacion || 'No especificada';
             
+            // Mostrar información de validación si existe
+            const validacionSection = document.getElementById('validacionSection');
+            if (solicitudData.fechaValidacion || solicitudData.razonValidacion) {
+                validacionSection.style.display = 'block';
+                document.getElementById('solicitudFechaValidacion').textContent = 
+                    solicitudData.fechaValidacion ? formatearFecha(solicitudData.fechaValidacion) : 'No disponible';
+                
+                // Determinar estado de validación
+                let estadoValidacion = 'Pendiente';
+                if (solicitudData.fechaValidacion) {
+                    estadoValidacion = solicitudData.razonValidacion ? 'Denegada' : 'Aprobada';
+                }
+                document.getElementById('solicitudEstadoValidacion').textContent = estadoValidacion;
+                document.getElementById('solicitudRazonValidacion').textContent = 
+                    solicitudData.razonValidacion || 'Sin razón especificada';
+            } else {
+                validacionSection.style.display = 'none';
+            }
+            
+            // Mostrar información de derivación si existe
+            const derivacionSection = document.getElementById('derivacionSection');
+            if (solicitudData.derivacion) {
+                derivacionSection.style.display = 'block';
+                document.getElementById('solicitudDerivacion').textContent = solicitudData.derivacion;
+            } else {
+                derivacionSection.style.display = 'none';
+            }
+            
+            // ===== CONTROL DE BOTONES SEGÚN ETAPA =====
+            const headerValidacionButtons = document.getElementById('headerValidacionButtons');
+            const headerDerivacionButtons = document.getElementById('headerDerivacionButtons');
+            
+            // Ocultar todos los botones primero
+            headerValidacionButtons.style.display = 'none';
+            headerDerivacionButtons.style.display = 'none';
+            
+            // Mostrar botones según la etapa
+            if (solicitudData.etapa === 'Por validar ingreso') {
+                headerValidacionButtons.style.display = 'flex';
+            } else if (solicitudData.etapa === 'Por derivar a Técnico') {
+                headerDerivacionButtons.style.display = 'flex';
+            }
+            
             // Configurar botón de editar
             const editBtn = document.getElementById('editSolicitudBtn');
             if (editBtn && solicitudData.id) {
-                editBtn.href = `/solicitudes/${solicitudData.id}/edit`;
+                editBtn.href = `/solicitudes/${solicitudData.id}/editar`;
             }
             
             showSolicitudDetails();
@@ -633,6 +1095,219 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // ===== MODALES PERSONALIZADOS =====
+    
+    // Variables globales para los modales
+    const validacionModalCustom = document.getElementById('validacionModalCustom');
+    const reasignacionModalCustom = document.getElementById('reasignacionModalCustom');
+    
+    // Funciones para mostrar/ocultar modales
+    function showModalCustom(modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function hideModalCustom(modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+    
+    // ===== MODAL DE VALIDACIÓN PERSONALIZADO =====
+    const validarIngresoBtn = document.getElementById('validarIngresoBtn');
+    const validacionFormCustom = document.getElementById('validacionFormCustom');
+    const confirmarValidacionBtnCustom = document.getElementById('confirmarValidacionBtnCustom');
+    
+    // Manejar cambios en el tipo de validación
+    document.querySelectorAll('input[name="accion_validacion"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const razonDiv = document.getElementById('razonDenegacionDivCustom');
+            const razonTextarea = document.getElementById('razon_validacion_custom');
+            
+            if (this.value === 'denegar') {
+                razonDiv.style.display = 'block';
+                razonTextarea.required = true;
+            } else {
+                razonDiv.style.display = 'none';
+                razonTextarea.required = false;
+                razonTextarea.value = '';
+            }
+        });
+    });
+    
+    // Abrir modal de validación
+    if (validarIngresoBtn) {
+        validarIngresoBtn.addEventListener('click', function() {
+            // Llenar datos del modal
+            document.getElementById('validacionSolicitudIdDisplay').textContent = solicitudActualId;
+            document.getElementById('validacionUsuarioDisplay').textContent = 
+                document.getElementById('solicitudUsuario').textContent;
+            document.getElementById('validacionSolicitudIdInput').value = solicitudActualId;
+            
+            // Resetear formulario
+            document.getElementById('validarCustom').checked = true;
+            document.getElementById('razonDenegacionDivCustom').style.display = 'none';
+            document.getElementById('razon_validacion_custom').value = '';
+            
+            showModalCustom(validacionModalCustom);
+        });
+    }
+    
+    // Cerrar modal de validación
+    document.getElementById('closeValidacionModal')?.addEventListener('click', () => {
+        hideModalCustom(validacionModalCustom);
+    });
+    
+    document.getElementById('cancelValidacionBtn')?.addEventListener('click', () => {
+        hideModalCustom(validacionModalCustom);
+    });
+    
+    // Confirmar validación
+    if (confirmarValidacionBtnCustom) {
+        confirmarValidacionBtnCustom.addEventListener('click', function() {
+            const accion = document.querySelector('input[name="accion_validacion"]:checked').value;
+            const razon = document.getElementById('razon_validacion_custom').value;
+            
+            // Validar campos requeridos
+            if (accion === 'denegar' && !razon.trim()) {
+                alert('Debe proporcionar una razón para denegar la solicitud.');
+                return;
+            }
+            
+            // Confirmar acción
+            const mensaje = accion === 'validar' ? 
+                '¿Está seguro de que desea validar esta solicitud?' : 
+                '¿Está seguro de que desea denegar esta solicitud?';
+            
+            if (confirm(mensaje)) {
+                // Enviar formulario
+                validacionFormCustom.action = `/bandeja/${solicitudActualId}/validar`;
+                validacionFormCustom.submit();
+            }
+        });
+    }
+    
+    // ===== MODAL DE REASIGNACIÓN PERSONALIZADO =====
+    const reasignarBtn = document.getElementById('reasignarBtn');
+    const reasignacionFormCustom = document.getElementById('reasignacionFormCustom');
+    const confirmarReasignacionBtnCustom = document.getElementById('confirmarReasignacionBtnCustom');
+    
+    // Manejar cambios en el tipo de reasignación
+    document.querySelectorAll('input[name="tipo_reasignacion"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const internoDiv = document.getElementById('departamentoInternoDivCustom');
+            const externoDiv = document.getElementById('destinoExternoDivCustom');
+            const deptSelect = document.getElementById('departamento_destino_custom');
+            const externoInput = document.getElementById('destino_externo_custom');
+            
+            if (this.value === 'interno') {
+                internoDiv.style.display = 'block';
+                externoDiv.style.display = 'none';
+                deptSelect.required = true;
+                externoInput.required = false;
+                externoInput.value = '';
+            } else {
+                internoDiv.style.display = 'none';
+                externoDiv.style.display = 'block';
+                deptSelect.required = false;
+                deptSelect.value = '';
+                externoInput.required = true;
+            }
+        });
+    });
+    
+    // Abrir modal de reasignación
+    if (reasignarBtn) {
+        reasignarBtn.addEventListener('click', function() {
+            // Llenar datos del modal
+            document.getElementById('reasignacionSolicitudIdDisplay').textContent = solicitudActualId;
+            document.getElementById('reasignacionUsuarioDisplay').textContent = 
+                document.getElementById('solicitudUsuario').textContent;
+            document.getElementById('reasignacionSolicitudIdInput').value = solicitudActualId;
+            
+            // Resetear formulario
+            document.getElementById('internoCustom').checked = true;
+            document.getElementById('departamentoInternoDivCustom').style.display = 'block';
+            document.getElementById('destinoExternoDivCustom').style.display = 'none';
+            document.getElementById('departamento_destino_custom').value = '';
+            document.getElementById('destino_externo_custom').value = '';
+            document.getElementById('motivo_reasignacion_custom').value = '';
+            
+            showModalCustom(reasignacionModalCustom);
+        });
+    }
+    
+    // Cerrar modal de reasignación
+    document.getElementById('closeReasignacionModal')?.addEventListener('click', () => {
+        hideModalCustom(reasignacionModalCustom);
+    });
+    
+    document.getElementById('cancelReasignacionBtn')?.addEventListener('click', () => {
+        hideModalCustom(reasignacionModalCustom);
+    });
+    
+    // Confirmar reasignación
+    if (confirmarReasignacionBtnCustom) {
+        confirmarReasignacionBtnCustom.addEventListener('click', function() {
+            const tipo = document.querySelector('input[name="tipo_reasignacion"]:checked').value;
+            const departamento = document.getElementById('departamento_destino_custom').value;
+            const externo = document.getElementById('destino_externo_custom').value;
+            
+            // Validar campos requeridos
+            if (tipo === 'interno' && !departamento) {
+                alert('Debe seleccionar un departamento de destino.');
+                return;
+            }
+            
+            if (tipo === 'externo' && !externo.trim()) {
+                alert('Debe especificar el destino externo.');
+                return;
+            }
+            
+            // Confirmar acción
+            const destino = tipo === 'interno' ? 
+                document.querySelector(`#departamento_destino_custom option[value="${departamento}"]`).textContent : 
+                externo;
+            
+            if (confirm(`¿Está seguro de que desea reasignar esta solicitud a: ${destino}?`)) {
+                // Enviar formulario
+                reasignacionFormCustom.action = `/bandeja/${solicitudActualId}/reasignar`;
+                reasignacionFormCustom.submit();
+            }
+        });
+    }
+    
+    // Cerrar modales con Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            if (validacionModalCustom && validacionModalCustom.classList.contains('show')) {
+                hideModalCustom(validacionModalCustom);
+            }
+            if (reasignacionModalCustom && reasignacionModalCustom.classList.contains('show')) {
+                hideModalCustom(reasignacionModalCustom);
+            }
+            if (derivacionTecnicoModalCustom && derivacionTecnicoModalCustom.classList.contains('show')) {
+                hideModalCustom(derivacionTecnicoModalCustom);
+            }
+        }
+    });
+    
+    // Cerrar modales al hacer clic en el fondo
+    if (validacionModalCustom) {
+        validacionModalCustom.addEventListener('click', function(event) {
+            if (event.target === validacionModalCustom) {
+                hideModalCustom(validacionModalCustom);
+            }
+        });
+    }
+    
+    if (reasignacionModalCustom) {
+        reasignacionModalCustom.addEventListener('click', function(event) {
+            if (event.target === reasignacionModalCustom) {
+                hideModalCustom(reasignacionModalCustom);
+            }
+        });
+    }
+
     // ===== ACTUALIZAR PÁGINA =====
     const refreshBtn = document.getElementById('refreshBtn');
     if (refreshBtn) {
@@ -644,7 +1319,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== AUTO-REFRESH CADA 30 SEGUNDOS =====
     setInterval(function() {
         // Solo auto-refresh si no hay modal abierto
-        if (!solicitudDetailsPanel.classList.contains('show')) {
+        if (!solicitudDetailsPanel.classList.contains('show') && 
+            !(validacionModalCustom && validacionModalCustom.classList.contains('show')) &&
+            !(reasignacionModalCustom && reasignacionModalCustom.classList.contains('show')) &&
+            !(derivacionTecnicoModalCustom && derivacionTecnicoModalCustom.classList.contains('show'))) {
+            
             const currentUrl = new URL(window.location);
             fetch(currentUrl)
                 .then(response => response.text())
@@ -664,6 +1343,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 30000); // 30 segundos
 });
+
+// ===== FUNCIONES AUXILIARES =====
 
 // Función para formatear fecha
 function formatearFecha(fechaStr) {
@@ -748,7 +1429,7 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
-// Atajos de teclado
+// ===== ATAJOS DE TECLADO =====
 document.addEventListener('keydown', function(e) {
     // F5 o Ctrl+R para actualizar
     if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
@@ -763,6 +1444,34 @@ document.addEventListener('keydown', function(e) {
         if (searchInput) {
             searchInput.focus();
             searchInput.select();
+        }
+    }
+    
+    // Esc para cerrar cualquier modal
+    if (e.key === 'Escape') {
+        const solicitudDetailsPanel = document.getElementById('solicitudDetailsPanel');
+        const validacionModalCustom = document.getElementById('validacionModalCustom');
+        const reasignacionModalCustom = document.getElementById('reasignacionModalCustom');
+        const derivacionTecnicoModalCustom = document.getElementById('derivacionTecnicoModalCustom');
+        
+        if (solicitudDetailsPanel && solicitudDetailsPanel.classList.contains('show')) {
+            solicitudDetailsPanel.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        
+        if (validacionModalCustom && validacionModalCustom.classList.contains('show')) {
+            validacionModalCustom.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        
+        if (reasignacionModalCustom && reasignacionModalCustom.classList.contains('show')) {
+            reasignacionModalCustom.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        
+        if (derivacionTecnicoModalCustom && derivacionTecnicoModalCustom.classList.contains('show')) {
+            derivacionTecnicoModalCustom.classList.remove('show');
+            document.body.style.overflow = '';
         }
     }
 });

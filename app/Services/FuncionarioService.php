@@ -83,6 +83,32 @@ class FuncionarioService extends BaseService
             throw new \Exception('Error al buscar el funcionario: ' . $e->getMessage());
         }
     }
+
+    /**
+     * API para obtener funcionarios con rol de técnico
+     * Agregar este método al BandejaController o crear un nuevo ApiController
+     */
+    public function getTecnicos()
+    {
+        try {
+            // Obtener todos los funcionarios
+            $funcionarios = $this->funcionarioService->getAllFuncionarios();
+            
+            // Filtrar solo los técnicos
+            $tecnicos = array_filter($funcionarios, function($funcionario) {
+                return isset($funcionario['rol']) && $funcionario['rol'] === 'tecnico';
+            });
+            
+            // Reindexar el array
+            $tecnicos = array_values($tecnicos);
+            
+            return response()->json($tecnicos);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error al obtener técnicos: ' . $e->getMessage());
+            return response()->json([], 500);
+        }
+    }
     
     /**
      * Obtiene un funcionario por su email

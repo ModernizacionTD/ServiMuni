@@ -1,0 +1,24 @@
+.btn-header {
+    background-color: #eaedf3;
+    border: 1px solid var(--filter-primary-color);
+    color: var(--filter-primary-color);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+}
+
+.btn-header:hover {
+    background: var(--filter-primary-color);
+    color: white;
+    border-color: var(--filter-primary-dark);
+    transform: translateY(-1px);
+}

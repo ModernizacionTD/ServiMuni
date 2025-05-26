@@ -7,7 +7,7 @@ use App\Http\Controllers\RequerimientoController;
 use App\Http\Controllers\FuncionarioController;
 use App\Http\Controllers\SolicitudController;
 use App\Http\Controllers\BusquedaController;
-use App\Http\Controllers\DashboardController; // NUEVO: Importar DashboardController
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BandejaController;
 
@@ -39,17 +39,27 @@ Route::prefix('solicitudes')->group(function () {
     Route::delete('/{id}', [SolicitudController::class, 'destroy'])->name('solicitudes.destroy');
 });
 
-// Agregar estas rutas en tu archivo web.php
+// Rutas para bandeja de solicitudes
+Route::prefix('bandeja')->group(function () {
+    Route::get('/', [BandejaController::class, 'index'])->name('bandeja.index');
+    Route::post('/{id}/tomar', [BandejaController::class, 'tomarSolicitud'])->name('bandeja.tomar');
+    Route::post('/{id}/cambiar-estado', [BandejaController::class, 'cambiarEstado'])->name('bandeja.cambiar-estado');
+    
+    // Rutas existentes
+    Route::post('/{id}/validar', [BandejaController::class, 'validarIngreso'])->name('bandeja.validar');
+    Route::post('/{id}/reasignar', [BandejaController::class, 'reasignarSolicitud'])->name('bandeja.reasignar');
+    
+    // NUEVA RUTA: Derivar a técnico
+    Route::post('/{id}/derivar-tecnico', [BandejaController::class, 'derivarATecnico'])->name('bandeja.derivar-tecnico');
+});
 
-// Bandeja de solicitudes
-Route::get('/bandeja', [BandejaController::class, 'index'])->name('bandeja.index');
-Route::post('/bandeja/{id}/tomar', [BandejaController::class, 'tomarSolicitud'])->name('bandeja.tomar');
-Route::post('/bandeja/{id}/cambiar-estado', [BandejaController::class, 'cambiarEstado'])->name('bandeja.cambiar-estado');
+// Agregar esta ruta API para obtener técnicos
+Route::get('/api/funcionarios/tecnicos', [BandejaController::class, 'getTecnicos'])->name('api.tecnicos');
 
-// NUEVO: Dashboard usando DashboardController
+// Dashboard usando DashboardController
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-// NUEVO: APIs opcionales para métricas en tiempo real
+// APIs opcionales para métricas en tiempo real
 Route::get('/api/dashboard/metrics', [DashboardController::class, 'getMetrics'])->name('dashboard.metrics');
 Route::get('/api/dashboard/chart-data', [DashboardController::class, 'getChartData'])->name('dashboard.chart');
 
