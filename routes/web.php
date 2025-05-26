@@ -8,6 +8,7 @@ use App\Http\Controllers\FuncionarioController;
 use App\Http\Controllers\SolicitudController;
 use App\Http\Controllers\BusquedaController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MapsController; // NUEVA LÍNEA
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BandejaController;
 
@@ -51,6 +52,12 @@ Route::prefix('bandeja')->group(function () {
     
     // NUEVA RUTA: Derivar a técnico
     Route::post('/{id}/derivar-tecnico', [BandejaController::class, 'derivarATecnico'])->name('bandeja.derivar-tecnico');
+});
+
+// NUEVAS RUTAS PARA EL MAPA
+Route::prefix('mapa')->group(function () {
+    Route::get('/', [MapsController::class, 'index'])->name('mapa.index');
+    Route::get('/datos', [MapsController::class, 'obtenerDatosMapa'])->name('mapa.datos');
 });
 
 // Agregar esta ruta API para obtener técnicos

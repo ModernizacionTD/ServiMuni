@@ -69,6 +69,13 @@
     </a>
 </li>
 
+<li class="nav-item-app">
+    <a href="{{ route('mapa.index') }}" class="nav-link-app {{ request()->routeIs('mapa.*') ? 'active' : '' }}">
+        <i class="fas fa-map-marked-alt"></i>
+        <span>Mapa de Solicitudes</span>
+    </a>
+</li>
+
 <!-- Nuevo enlace para Ingresar Solicitudes -->
 <li class="nav-item-app">
     <a href="{{ route('buscar.usuario') }}" class="nav-link-app {{ request()->routeIs('buscar.usuario') ? 'active' : '' }}">

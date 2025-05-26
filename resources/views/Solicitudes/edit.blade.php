@@ -206,7 +206,7 @@
                         <div class="col-md-3">
                             <div class="form-group mb-3">
                                 <label class="form-label">Fecha de Ingreso</label>
-                                <input type="text" class="form-control" value="{{ \Carbon\Carbon::parse($solicitud['fecha_inicio'])->format('d/m/Y') }}" readonly>
+                                <input type="text" class="form-control" value="{{ \Carbon\Carbon::parse($solicitud['fecha_ingreso'])->format('d/m/Y') }}" readonly>
                             </div>
                         </div>
                         
