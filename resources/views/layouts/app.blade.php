@@ -54,13 +54,6 @@
 
                 <!-- En app.blade.php, en la sección de navegación, agrega: -->
 
-<li class="nav-item-app">
-    <a href="{{ route('dashboard') }}" class="nav-link-app {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-    </a>
-</li>
-
 <!-- NUEVA LÍNEA PARA LA BANDEJA -->
 <li class="nav-item-app">
     <a href="{{ route('bandeja.index') }}" class="nav-link-app {{ request()->routeIs('bandeja.*') ? 'active' : '' }}">
@@ -116,6 +109,13 @@
                     <a href="{{ route('departamentos.index') }}" class="nav-link-app {{ request()->routeIs('departamentos.index') ? 'active' : '' }}">
                         <i class="fas fa-sitemap"></i>
                         <span>Departamentos</span>
+                    </a>
+                </li>
+
+                <li class="nav-item-app">
+                    <a href="{{ route('unidades.index') }}" class="nav-link-app {{ request()->routeIs('unidades.index') ? 'active' : '' }}">
+                        <i class="fas fa-sitemap"></i>
+                        <span>Unidades</span>
                     </a>
                 </li>
                 

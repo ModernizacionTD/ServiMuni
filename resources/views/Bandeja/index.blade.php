@@ -423,8 +423,8 @@
                 </button>
             </div>
             <div class="header-actions" id="headerDerivacionButtons" style="display: none;">
-                <button type="button" class="btn btn-info header-btn" id="derivarTecnicoBtn">
-                    <i class="fas fa-user-cog"></i> Derivar a Técnico
+                <button type="button" class="btn btn-info header-btn" id="derivarUnidadBtn">
+                    <i class="fas fa-building"></i> Derivar a Unidad
                 </button>
             </div>
         </div>
@@ -1475,5 +1475,113 @@ document.addEventListener('keydown', function(e) {
         }
     }
 });
+
+// ===== ORDENAR SOLICITUDES =====
+function ordenarSolicitudes() {
+    const tbody = document.querySelector('.data-table tbody');
+    if (!tbody) return;
+    
+    // Convertir NodeList a Array para poder ordenar
+    const filas = Array.from(tbody.querySelectorAll('tr.solicitud-row'));
+    
+    // Función de ordenamiento
+    filas.sort((a, b) => {
+        // Primero revisar si alguna tiene estado "Completado"
+        const estadoA = a.querySelector('td:nth-child(7) .status-badge').textContent.trim();
+        const estadoB = b.querySelector('td:nth-child(7) .status-badge').textContent.trim();
+        
+        // Si ambos están completados o ninguno está completado, ordenar por fecha
+        if ((estadoA === 'Completado' && estadoB === 'Completado') || 
+            (estadoA !== 'Completado' && estadoB !== 'Completado')) {
+            
+            // Obtener fechas (están en el formato DD/MM/YYYY)
+            const fechaTextoA = a.querySelector('td:nth-child(6) small').textContent.trim().split(' ')[0];
+            const fechaTextoB = b.querySelector('td:nth-child(6) small').textContent.trim().split(' ')[0];
+            
+            // Convertir a objetos Date para comparar (formato: DD/MM/YYYY)
+            const partesFechaA = fechaTextoA.split('/');
+            const partesFechaB = fechaTextoB.split('/');
+            
+            if (partesFechaA.length === 3 && partesFechaB.length === 3) {
+                const fechaA = new Date(
+                    parseInt(partesFechaA[2]), // Año
+                    parseInt(partesFechaA[1]) - 1, // Mes (0-11)
+                    parseInt(partesFechaA[0]) // Día
+                );
+                
+                const fechaB = new Date(
+                    parseInt(partesFechaB[2]), // Año
+                    parseInt(partesFechaB[1]) - 1, // Mes (0-11)
+                    parseInt(partesFechaB[0]) // Día
+                );
+                
+                // Ordenar descendente por fecha (más reciente primero)
+                return fechaB - fechaA;
+            }
+            
+            return 0; // Si no se pueden comparar fechas, mantener orden
+        }
+        
+        // Si una está completada y la otra no, la completada va al final
+        return estadoA === 'Completado' ? 1 : -1;
+    });
+    
+    // Reordenar el DOM
+    filas.forEach(fila => tbody.appendChild(fila));
+    
+    console.log('Solicitudes reordenadas: completadas al final, resto por fecha de ingreso');
+}
+
+// Llamar a la función de ordenamiento cuando la página cargue
+document.addEventListener('DOMContentLoaded', function() {
+    // Ejecutar la ordenación inicial
+    ordenarSolicitudes();
+    
+    // Agregar un botón para ordenar manualmente
+    const headerActions = document.querySelector('.filter-card-header .d-flex');
+    if (headerActions) {
+        const ordenarBtn = document.createElement('button');
+        ordenarBtn.className = 'btn btn-sm btn-header ms-2';
+        ordenarBtn.innerHTML = '<i class="fas fa-sort"></i> Ordenar';
+        ordenarBtn.title = 'Ordenar: Completadas al final, resto por fecha';
+        ordenarBtn.addEventListener('click', ordenarSolicitudes);
+        headerActions.appendChild(ordenarBtn);
+    }
+});
+
+// ===== ACTUALIZAR PÁGINA =====
+const refreshBtn = document.getElementById('refreshBtn');
+if (refreshBtn) {
+    refreshBtn.addEventListener('click', function() {
+        window.location.reload();
+    });
+}
+
+// ===== AUTO-REFRESH CADA 30 SEGUNDOS =====
+setInterval(function() {
+    // Solo auto-refresh si no hay modal abierto
+    if (!solicitudDetailsPanel.classList.contains('show') && 
+        !(validacionModalCustom && validacionModalCustom.classList.contains('show')) &&
+        !(reasignacionModalCustom && reasignacionModalCustom.classList.contains('show')) &&
+        !(derivacionTecnicoModalCustom && derivacionTecnicoModalCustom.classList.contains('show'))) {
+        
+        const currentUrl = new URL(window.location);
+        fetch(currentUrl)
+            .then(response => response.text())
+            .then(html => {
+                // Actualizar solo el contador en el título
+                const parser = new DOMParser();
+                const newDoc = parser.parseFromString(html, 'text/html');
+                const newBadge = newDoc.querySelector('.filter-card-title .badge');
+                const currentBadge = document.querySelector('.filter-card-title .badge');
+                
+                if (newBadge && currentBadge && newBadge.textContent !== currentBadge.textContent) {
+                    // Mostrar notificación de nuevas solicitudes
+                    showNotification('Hay nuevas solicitudes disponibles', 'info');
+                }
+            })
+            .catch(e => console.log('Error al verificar actualizaciones:', e));
+    }
+}, 30000); // 30 segundos
 </script>
 @endsection

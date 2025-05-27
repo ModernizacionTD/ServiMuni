@@ -11,10 +11,11 @@ class FuncionarioService extends BaseService
      *
      * @return array
      */
-    public function getAllFuncionarios()
+  public function getAllFuncionarios()
     {
         try {
-            $range = 'Funcionarios!A:F'; // Rango de datos para funcionarios (id, email, nombre, password, rol)
+            // CAMBIAR EL RANGO PARA INCLUIR LA COLUMNA UNIDAD_ID (G)
+            $range = 'Funcionarios!A:G'; // Ahora incluye: id, email, nombre, password, rol, departamento_id, unidad_id
             $response = $this->sheets->spreadsheets_values->get($this->spreadsheetId, $range);
             $values = $response->getValues();
             
@@ -22,8 +23,8 @@ class FuncionarioService extends BaseService
                 return [];
             }
             
-            // Asumiendo que la primera fila es encabezados
-            $headers = ['id', 'email', 'nombre', 'password', 'rol', 'departamento_id']; 
+            // ACTUALIZAR LOS HEADERS PARA INCLUIR UNIDAD_ID
+            $headers = ['id', 'email', 'nombre', 'password', 'rol', 'departamento_id', 'unidad_id']; 
             
             $result = [];
             foreach ($values as $index => $row) {
@@ -51,7 +52,6 @@ class FuncionarioService extends BaseService
             return [];
         }
     }
-
 
     /**
      * Obtiene un funcionario por su ID
@@ -158,7 +158,7 @@ class FuncionarioService extends BaseService
             
             \Log::info('Nuevo ID para el funcionario: ' . $nextId);
             
-            // Preparar datos para insertar
+            // ACTUALIZAR PARA INCLUIR UNIDAD_ID
             $values = [
                 [
                     $nextId,
@@ -166,7 +166,8 @@ class FuncionarioService extends BaseService
                     $data['nombre'],
                     $data['password'],
                     $data['rol'],
-                    $data['departamento_id'] ?? null // Asegurarse de que el departamento_id esté presente
+                    $data['departamento_id'] ?? null,
+                    $data['unidad_id'] ?? null // Agregar unidad_id
                 ]
             ];
             
@@ -179,10 +180,11 @@ class FuncionarioService extends BaseService
             
             // Si la hoja está vacía, asegurar que existe y crear los encabezados
             if (empty($funcionarios)) {
-                $this->createHeadersIfNeeded('Funcionarios!A1:E1', ['id', 'email', 'nombre', 'password', 'rol']);
+                $this->createHeadersIfNeeded('Funcionarios!A1:G1', ['id', 'email', 'nombre', 'password', 'rol', 'departamento_id', 'unidad_id']);
             }
             
-            $range = "Funcionarios!A$nextRow:F$nextRow";
+            // ACTUALIZAR EL RANGO PARA INCLUIR LA COLUMNA G
+            $range = "Funcionarios!A$nextRow:G$nextRow";
             
             $params = [
                 'valueInputOption' => 'RAW'
@@ -207,7 +209,7 @@ class FuncionarioService extends BaseService
         }
     }
     
-    /**
+   /**
      * Actualiza un funcionario existente
      *
      * @param string $id
@@ -235,7 +237,7 @@ class FuncionarioService extends BaseService
                 throw new \Exception("Funcionario con ID $id no encontrado");
             }
             
-            // Preparar datos para actualizar
+            // ACTUALIZAR PARA INCLUIR UNIDAD_ID
             $values = [
                 [
                     $id, // Mantener el mismo ID
@@ -243,7 +245,8 @@ class FuncionarioService extends BaseService
                     $data['nombre'],
                     $data['password'],
                     $data['rol'],
-                    $data['departamento_id'] ?? null // Asegurarse de que el departamento_id esté presente
+                    $data['departamento_id'] ?? null,
+                    $data['unidad_id'] ?? null // Agregar unidad_id
                 ]
             ];
             
@@ -251,7 +254,8 @@ class FuncionarioService extends BaseService
                 'values' => $values
             ]);
             
-            $range = "Funcionarios!A$rowIndex:F$rowIndex";
+            // ACTUALIZAR EL RANGO PARA INCLUIR LA COLUMNA G
+            $range = "Funcionarios!A$rowIndex:G$rowIndex";
             
             $params = [
                 'valueInputOption' => 'RAW'
@@ -302,16 +306,16 @@ class FuncionarioService extends BaseService
                 throw new \Exception("Funcionario con ID $id no encontrado");
             }
             
-            // Preparar solicitud para eliminar la fila (reemplazando con valores vacíos)
+            // ACTUALIZAR PARA INCLUIR LA COLUMNA G
             $values = [
-                ['', '', '', '', '', ''] // 5 celdas vacías para "eliminar" la fila
+                ['', '', '', '', '', '', ''] // 7 celdas vacías para "eliminar" la fila
             ];
             
             $body = new \Google\Service\Sheets\ValueRange([
                 'values' => $values
             ]);
             
-            $range = "Funcionarios!A$rowIndex:F$rowIndex";
+            $range = "Funcionarios!A$rowIndex:G$rowIndex";
             
             $params = [
                 'valueInputOption' => 'RAW'
@@ -332,4 +336,161 @@ class FuncionarioService extends BaseService
             throw new \Exception('Error al eliminar el funcionario: ' . $e->getMessage());
         }
     }
+
+    /**
+ * Asigna un funcionario a una unidad
+ *
+ * @param string $funcionarioId
+ * @param string $unidadId
+ * @return bool
+ */
+public function asignarUnidad($funcionarioId, $unidadId)
+{
+    try {
+        \Log::info("Asignando funcionario ID: $funcionarioId a unidad ID: $unidadId");
+        
+        // Obtener el funcionario
+        $funcionario = $this->getFuncionarioById($funcionarioId);
+        
+        if (!$funcionario) {
+            throw new \Exception("Funcionario con ID $funcionarioId no encontrado");
+        }
+        
+        // Actualizar el funcionario con la nueva unidad
+        $funcionarioData = $funcionario;
+        $funcionarioData['unidad_id'] = $unidadId;
+        
+        $result = $this->updateFuncionario($funcionarioId, $funcionarioData);
+        
+        \Log::info('Funcionario asignado correctamente a la unidad');
+        
+        return true;
+    } catch (\Exception $e) {
+        \Log::error('Error al asignar funcionario a unidad: ' . $e->getMessage());
+        throw new \Exception('Error al asignar funcionario a unidad: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Desasigna un funcionario de cualquier unidad
+ *
+ * @param string $funcionarioId
+ * @return bool
+ */
+public function desasignarUnidad($funcionarioId)
+{
+    try {
+        \Log::info("Desasignando funcionario ID: $funcionarioId de su unidad");
+        
+        // Obtener el funcionario
+        $funcionario = $this->getFuncionarioById($funcionarioId);
+        
+        if (!$funcionario) {
+            throw new \Exception("Funcionario con ID $funcionarioId no encontrado");
+        }
+        
+        // Actualizar el funcionario quitando la unidad
+        $funcionarioData = $funcionario;
+        $funcionarioData['unidad_id'] = null;
+        
+        $result = $this->updateFuncionario($funcionarioId, $funcionarioData);
+        
+        \Log::info('Funcionario desasignado correctamente de la unidad');
+        
+        return true;
+    } catch (\Exception $e) {
+        \Log::error('Error al desasignar funcionario de unidad: ' . $e->getMessage());
+        throw new \Exception('Error al desasignar funcionario de unidad: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Desasigna todos los funcionarios de una unidad específica
+ *
+ * @param string $unidadId
+ * @return bool
+ */
+public function desasignarTodosDeUnidad($unidadId)
+{
+    try {
+        \Log::info("Desasignando todos los funcionarios de la unidad ID: $unidadId");
+        
+        // Obtener todos los funcionarios
+        $funcionarios = $this->getAllFuncionarios();
+        
+        // Filtrar los que pertenecen a esta unidad
+        $funcionariosUnidad = array_filter($funcionarios, function($f) use ($unidadId) {
+            return isset($f['unidad_id']) && $f['unidad_id'] == $unidadId;
+        });
+        
+        // Desasignar cada uno
+        foreach ($funcionariosUnidad as $funcionario) {
+            $this->desasignarUnidad($funcionario['id']);
+        }
+        
+        \Log::info('Todos los funcionarios desasignados correctamente de la unidad');
+        
+        return true;
+    } catch (\Exception $e) {
+        \Log::error('Error al desasignar todos los funcionarios de la unidad: ' . $e->getMessage());
+        throw new \Exception('Error al desasignar todos los funcionarios de la unidad: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Obtiene todos los funcionarios asignados a una unidad
+ *
+ * @param string $unidadId
+ * @return array
+ */
+public function getFuncionariosByUnidad($unidadId)
+{
+    try {
+        \Log::info("Obteniendo funcionarios de la unidad ID: $unidadId");
+        
+        // Obtener todos los funcionarios
+        $funcionarios = $this->getAllFuncionarios();
+        
+        // Filtrar los que pertenecen a esta unidad
+        $funcionariosUnidad = array_filter($funcionarios, function($f) use ($unidadId) {
+            return isset($f['unidad_id']) && $f['unidad_id'] == $unidadId;
+        });
+        
+        \Log::info('Funcionarios encontrados: ' . count($funcionariosUnidad));
+        
+        return array_values($funcionariosUnidad); // Reindexar el array
+    } catch (\Exception $e) {
+        \Log::error('Error al obtener funcionarios por unidad: ' . $e->getMessage());
+        throw new \Exception('Error al obtener funcionarios por unidad: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Obtiene todos los funcionarios con rol de técnico asignados a una unidad
+ *
+ * @param string $unidadId
+ * @return array
+ */
+public function getTecnicosByUnidad($unidadId)
+{
+    try {
+        \Log::info("Obteniendo técnicos de la unidad ID: $unidadId");
+        
+        // Obtener todos los funcionarios de la unidad
+        $funcionariosUnidad = $this->getFuncionariosByUnidad($unidadId);
+        
+        // Filtrar solo los técnicos
+        $tecnicos = array_filter($funcionariosUnidad, function($f) {
+            return isset($f['rol']) && $f['rol'] === 'tecnico';
+        });
+        
+        \Log::info('Técnicos encontrados: ' . count($tecnicos));
+        
+        return array_values($tecnicos); // Reindexar el array
+    } catch (\Exception $e) {
+        \Log::error('Error al obtener técnicos por unidad: ' . $e->getMessage());
+        throw new \Exception('Error al obtener técnicos por unidad: ' . $e->getMessage());
+    }
+}
+
 }

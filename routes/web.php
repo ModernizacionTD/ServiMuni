@@ -11,6 +11,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MapsController; // NUEVA LÍNEA
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BandejaController;
+use App\Http\Controllers\UnidadController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -54,6 +55,8 @@ Route::prefix('bandeja')->group(function () {
     Route::post('/{id}/derivar-tecnico', [BandejaController::class, 'derivarATecnico'])->name('bandeja.derivar-tecnico');
 });
 
+
+
 // NUEVAS RUTAS PARA EL MAPA
 Route::prefix('mapa')->group(function () {
     Route::get('/', [MapsController::class, 'index'])->name('mapa.index');
@@ -96,6 +99,28 @@ Route::prefix('departamentos')->group(function () {
     Route::put('/{id}', [DepartamentoController::class, 'update'])->name('departamentos.update');
     Route::delete('/{id}', [DepartamentoController::class, 'destroy'])->name('departamentos.destroy');
 });
+
+// Rutas para gestión de unidades
+Route::prefix('unidades')->group(function () {
+    Route::get('/', [UnidadController::class, 'index'])->name('unidades.index');
+    Route::get('/create', [UnidadController::class, 'create'])->name('unidades.create');
+    Route::post('/', [UnidadController::class, 'store'])->name('unidades.store');
+    Route::get('/{id}/edit', [UnidadController::class, 'edit'])->name('unidades.edit');
+    Route::put('/{id}', [UnidadController::class, 'update'])->name('unidades.update');
+    Route::delete('/{id}', [UnidadController::class, 'destroy'])->name('unidades.destroy');
+    
+    // Ruta existente para API de técnicos por unidad
+    Route::get('/{id}/tecnicos', [UnidadController::class, 'getTecnicosByUnidad'])->name('unidades.tecnicos');
+});
+
+// NUEVA RUTA: API para obtener funcionarios por departamento
+Route::get('/api/departamentos/{id}/funcionarios', [UnidadController::class, 'getFuncionariosByDepartamento'])->name('api.departamentos.funcionarios');
+
+// También agregar la ruta API para obtener técnicos por unidad específica
+Route::get('/api/unidades/{id}/tecnicos', [UnidadController::class, 'getTecnicosByUnidad'])->name('api.unidades.tecnicos');
+
+
+Route::get('/api/unidades/{id}/funcionarios', [UnidadController::class, 'getFuncionariosByUnidad'])->name('api.unidades.funcionarios');
 
 // Rutas para gestión de usuarios
 Route::prefix('usuarios')->group(function () {
