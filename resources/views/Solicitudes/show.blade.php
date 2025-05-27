@@ -54,7 +54,7 @@
                             <strong>Fecha de Ingreso:</strong>
                         </div>
                         <div class="col-md-8">
-                            {{ \Carbon\Carbon::parse($solicitud['fecha_inicio'])->format('d/m/Y') }}
+                            {{ \Carbon\Carbon::parse($solicitud['fecha_ingreso'])->format('d/m/Y') }}
                         </div>
                     </div>
 
@@ -295,7 +295,7 @@
                             <strong>Ingreso:</strong>
                         </div>
                         <div class="col-7">
-                            {{ \Carbon\Carbon::parse($solicitud['fecha_inicio'])->format('d/m/Y') }}
+                            {{ \Carbon\Carbon::parse($solicitud['fecha_ingreso'])->format('d/m/Y') }}
                         </div>
                     </div>
                     
