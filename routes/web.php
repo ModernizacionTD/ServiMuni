@@ -73,23 +73,6 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 Route::get('/api/dashboard/metrics', [DashboardController::class, 'getMetrics'])->name('dashboard.metrics');
 Route::get('/api/dashboard/chart-data', [DashboardController::class, 'getChartData'])->name('dashboard.chart');
 
-// Página de administración - solo para administradores
-Route::get('/admin', function () {
-    // Verificar si el usuario está autenticado
-    if (!session('user_id')) {
-        return redirect()->route('login');
-    }
-    
-    // Verificar si el usuario es administrador
-    if (session('user_rol') !== 'admin') {
-        abort(403, 'No tienes permiso para acceder a esta página.');
-    }
-    
-    return view('admin', [
-        'nombre' => session('user_nombre')
-    ]);
-})->name('admin');
-
 // Rutas para gestión de departamentos
 Route::prefix('departamentos')->group(function () {
     Route::get('/', [DepartamentoController::class, 'index'])->name('departamentos.index');

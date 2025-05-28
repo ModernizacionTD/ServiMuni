@@ -79,8 +79,8 @@
                         <select name="estado" class="form-select filter-select">
                             <option value="">Todos los estados</option>
                             <option value="En curso" {{ $filtros['estado'] == 'En curso' ? 'selected' : '' }}>En curso</option>
-                            <option value="En proceso" {{ $filtros['estado'] == 'Finalizada' ? 'selected' : '' }}>Finalizadas</option>
-                            <option value="Completado" {{ $filtros['estado'] == 'Derivada' ? 'selected' : '' }}>Derivadas</option>
+                            <option value="Finalizadas" {{ $filtros['estado'] == 'Finalizada' ? 'selected' : '' }}>Finalizadas</option>
+                            <option value="Derivadas" {{ $filtros['estado'] == 'Derivada' ? 'selected' : '' }}>Derivadas</option>
                         </select>
                     </div>
                     
@@ -89,7 +89,7 @@
                         <select name="etapa" class="form-select filter-select">
                             <option value="">Todas las etapas</option>
                             <option value="Por validar ingreso" {{ $filtros['etapa'] == 'Por validar ingreso' ? 'selected' : '' }}>Por validar ingreso</option>
-                            <option value="Por derivar a Técnico" {{ $filtros['etapa'] == 'Por derivar a Técnico' ? 'selected' : '' }}>Por derivar a Técnico</option>
+                            <option value="Por derivar a Unidad" {{ $filtros['etapa'] == 'Por derivar a Unidad' ? 'selected' : '' }}>Por derivar a Unidad</option>
                             <option value="En espera de Informe" {{ $filtros['etapa'] == 'En espera de Informe' ? 'selected' : '' }}>En espera de Informe</option>
                             <option value="Revisión" {{ $filtros['etapa'] == 'Revisión' ? 'selected' : '' }}>Revisión</option>
                             <option value="Completada" {{ $filtros['etapa'] == 'Completada' ? 'selected' : '' }}>Completada</option>
@@ -328,7 +328,7 @@
                                         <!-- Tomar solicitud (solo si no está asignada) -->
                                         @if(
                                             ($rol == 'gestor' && empty($solicitud['rut_gestor'])) ||
-                                            ($rol == 'tecnico' && empty($solicitud['rut_tecnico']))
+                                            ($rol == 'unidad' && empty($solicitud['rut_tecnico']))
                                         )
                                             <form method="POST" action="{{ route('bandeja.tomar', $solicitud['id_solicitud']) }}" style="display: inline;">
                                                 @csrf
@@ -589,7 +589,7 @@
                             <label class="form-check-label-custom text-success fw-bold" for="validarCustom">
                                 <i class="fas fa-check-circle"></i> Validar - Aprobar la solicitud
                             </label>
-                            <div class="form-help-text">La solicitud pasará a la etapa "Por derivar a Técnico"</div>
+                            <div class="form-help-text">La solicitud pasará a la etapa "Por derivar a Unidad"</div>
                         </div>
                     </div>
                     
@@ -717,13 +717,13 @@
     </div>
 </div>
 
-<div class="modal-custom" id="derivacionTecnicoModalCustom">
+<div class="modal-custom" id="derivacionUnidadModalCustom">
     <div class="modal-custom-content">
         <div class="modal-custom-header bg-info">
             <h5>
-                <i class="fas fa-user-cog"></i> Derivar Solicitud a Técnico
+                <i class="fas fa-user-cog"></i> Derivar Solicitud a Unidad
             </h5>
-            <button type="button" class="modal-custom-close" id="closeDerivacionTecnicoModal">
+            <button type="button" class="modal-custom-close" id="closeDerivacionUnidadModal">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -734,24 +734,24 @@
                 <div class="modal-info-row">
                     <div class="modal-info-item">
                         <span class="modal-info-label">Solicitud ID</span>
-                        <span class="modal-info-value" id="derivacionTecnicoSolicitudIdDisplay"></span>
+                        <span class="modal-info-value" id="derivacionUnidadSolicitudIdDisplay"></span>
                     </div>
                     <div class="modal-info-item">
                         <span class="modal-info-label">Usuario</span>
-                        <span class="modal-info-value" id="derivacionTecnicoUsuarioDisplay"></span>
+                        <span class="modal-info-value" id="derivacionUnidadUsuarioDisplay"></span>
                     </div>
                 </div>
             </div>
             
-            <form id="derivacionTecnicoFormCustom" method="POST">
+            <form id="derivacionUnidadFormCustom" method="POST">
                 @csrf
-                <input type="hidden" id="derivacionTecnicoSolicitudIdInput" name="solicitud_id">
+                <input type="hidden" id="derivacionUnidadSolicitudIdInput" name="solicitud_id">
                 
                 <div class="modal-form-section">
-                    <label for="tecnico_asignado" class="form-label fw-bold">Seleccionar Técnico <span class="text-danger">*</span></label>
+                    <label for="tecnico_asignado" class="form-label fw-bold">Seleccionar Unidad <span class="text-danger">*</span></label>
                     
-                    <!-- Tabla de técnicos -->
-                    <div class="tecnicos-container">
+                    <!-- Tabla de unidades -->
+                    <div class="unidades-container">
                         <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
                             <table class="table table-hover">
                                 <thead style="position: sticky; top: 0; background: #f8f9fa;">
@@ -763,7 +763,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tecnicosTableBody">
-                                    <!-- Los técnicos se cargarán dinámicamente -->
+                                    <!-- Los unidades se cargarán dinámicamente -->
                                 </tbody>
                             </table>
                         </div>
@@ -771,24 +771,24 @@
                     
                     <div class="form-text mt-2">
                         <i class="fas fa-info-circle"></i> 
-                        Seleccione el técnico que se encargará de procesar esta solicitud.
+                        Seleccione el unidad que se encargará de procesar esta solicitud.
                     </div>
                 </div>
                 
                 <div class="modal-form-section">
                     <label for="observaciones_derivacion" class="form-label fw-bold">Observaciones (Opcional)</label>
                     <textarea class="form-control" id="observaciones_derivacion" name="observaciones_derivacion" rows="3" 
-                              placeholder="Agregue cualquier observación o instrucción especial para el técnico..."></textarea>
-                    <div class="form-text">Campo opcional para proporcionar contexto adicional al técnico asignado.</div>
+                              placeholder="Agregue cualquier observación o instrucción especial para la unidad..."></textarea>
+                    <div class="form-text">Campo opcional para proporcionar contexto adicional a la unidad asignada.</div>
                 </div>
             </form>
         </div>
         
         <div class="modal-custom-footer">
-            <button type="button" class="modal-btn modal-btn-secondary" id="cancelDerivacionTecnicoBtn">
+            <button type="button" class="modal-btn modal-btn-secondary" id="cancelDerivacionUnidadBtn">
                 <i class="fas fa-times"></i> Cancelar
             </button>
-            <button type="button" class="modal-btn modal-btn-info" id="confirmarDerivacionTecnicoBtn">
+            <button type="button" class="modal-btn modal-btn-info" id="confirmarDerivacionUnidadBtn">
                 <i class="fas fa-user-cog"></i> Confirmar Derivación
             </button>
         </div>
@@ -800,66 +800,66 @@ document.addEventListener('DOMContentLoaded', function() {
     // Variables globales
     let solicitudActualId = null;
     let solicitudActualEtapa = null;
-    let funcionariosTecnicos = [];
+    let funcionariosUnidades = [];
     
     // ===== FUNCIONALIDAD DEL MODAL DE DETALLES =====
     const solicitudDetailsPanel = document.getElementById('solicitudDetailsPanel');
     const viewButtons = document.querySelectorAll('.view-solicitud-details');
     const closeSolicitudPanelBtn = document.getElementById('closeSolicitudPanelBtn');
     const closeSolicitudPanelBtn2 = document.getElementById('closeSolicitudPanelBtn2');
-    const derivarTecnicoBtn = document.getElementById('derivarTecnicoBtn');
-    const derivacionTecnicoModalCustom = document.getElementById('derivacionTecnicoModalCustom');
-    const derivacionTecnicoFormCustom = document.getElementById('derivacionTecnicoFormCustom');
-    const confirmarDerivacionTecnicoBtn = document.getElementById('confirmarDerivacionTecnicoBtn');
+    const derivarUnidadBtn = document.getElementById('derivarUnidadBtn');
+    const derivacionUnidadModalCustom = document.getElementById('derivacionUnidadModalCustom');
+    const derivacionUnidadFormCustom = document.getElementById('derivacionUnidadFormCustom');
+    const confirmarDerivacionUnidadBtn = document.getElementById('confirmarDerivacionUnidadBtn');
     const tecnicosTableBody = document.getElementById('tecnicosTableBody');
     
-    cargarTecnicos();
+    cargarUnidades();
 
-    // Función para cargar técnicos
-    async function cargarTecnicos() {
+    // Función para cargar unidades
+    async function cargarUnidades() {
         try {
-            // Aquí deberías hacer una llamada AJAX para obtener los técnicos
+            // Aquí deberías hacer una llamada AJAX para obtener los unidades
             // Por ahora, usamos los datos que ya tienes en la vista
-            const response = await fetch('/api/funcionarios/tecnicos');
+            const response = await fetch('/api/funcionarios/unidades');
             if (response.ok) {
-                funcionariosTecnicos = await response.json();
+                funcionariosUnidades = await response.json();
             }
         } catch (error) {
-            console.log('Error al cargar técnicos:', error);
+            console.log('Error al cargar unidades:', error);
             // Fallback: usar datos de la vista si están disponibles
             if (typeof funcionarios !== 'undefined') {
-                funcionariosTecnicos = Object.values(funcionarios).filter(f => f.rol === 'tecnico');
+                funcionariosUnidades = Object.values(funcionarios).filter(f => f.rol === 'unidad');
             }
         }
     }
 
-    // Función para mostrar técnicos en la tabla
-    function mostrarTecnicos() {
-        if (!funcionariosTecnicos || funcionariosTecnicos.length === 0) {
+    // Función para mostrar unidades en la tabla
+    function mostrarUnidades() {
+        if (!funcionariosUnidades || funcionariosUnidades.length === 0) {
             tecnicosTableBody.innerHTML = `
                 <tr>
-                    <td colspan="4" class="no-tecnicos-message">
+                    <td colspan="4" class="no-unidades-message">
                         <i class="fas fa-user-times"></i>
-                        <p>No hay técnicos disponibles en el sistema.</p>
+                        <p>No hay unidades disponibles en el sistema.</p>   
                     </td>
                 </tr>
             `;
             return;
         }
         
-        const tecnicosHTML = funcionariosTecnicos.map(tecnico => `
-            <tr data-tecnico-id="${tecnico.id}" onclick="seleccionarTecnico('${tecnico.id}')">
+        const tecnicosHTML = funcionariosUnidades.map(unidad => `
+            <tr data-unidad-id="${unidad.id}" onclick="seleccionarUnidad('${unidad.id}')">
                 <td>
-                    <input type="radio" name="tecnico_asignado" value="${tecnico.id}" id="tecnico_${tecnico.id}">
+                    <input type="radio" name="tecnico_asignado" value="${unidad.id}" id="tecnico_${unidad.id}">
                 </td>
                 <td>
-                    <div class="tecnico-nombre">${tecnico.nombre}</div>
+                    <div class="unidad-nombre">${unidad.nombre}</div>
                 </td>
                 <td>
-                    <div class="tecnico-email">${tecnico.email}</div>
+                    <div class="unidad-email">${unidad.email}</div>
                 </td>
                 <td>
-                    <div class="tecnico-departamento">${obtenerNombreDepartamento(tecnico.departamento_id)}</div>
+                    <div class="unidad-departamento">${obtenerNombreDepartamento(unidad.departamento_id)}</div>
                 </td>
             </tr>
         `).join('');
@@ -868,9 +868,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Función para seleccionar técnico
-    function seleccionarTecnico(tecnicoId) {
+    function seleccionarUnidad(tecnicoId) {
         // Quitar selección anterior
-        document.querySelectorAll('.tecnicos-container tr').forEach(tr => {
+        document.querySelectorAll('.unidades-container tr').forEach(tr => {
             tr.classList.remove('selected');
         });
         
@@ -891,42 +891,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Abrir modal de derivación a técnico
-    if (derivarTecnicoBtn) {
-        derivarTecnicoBtn.addEventListener('click', function() {
+    if (derivarUnidadBtn) {
+        derivarUnidadBtn.addEventListener('click', function() {
             // Llenar datos del modal
-            document.getElementById('derivacionTecnicoSolicitudIdDisplay').textContent = solicitudActualId;
-            document.getElementById('derivacionTecnicoUsuarioDisplay').textContent = 
+            document.getElementById('derivacionUnidadSolicitudIdDisplay').textContent = solicitudActualId;
+            document.getElementById('derivacionUnidadUsuarioDisplay').textContent = 
                 document.getElementById('solicitudUsuario').textContent;
-            document.getElementById('derivacionTecnicoSolicitudIdInput').value = solicitudActualId;
+            document.getElementById('derivacionUnidadSolicitudIdInput').value = solicitudActualId;
             
             // Resetear formulario
             document.querySelectorAll('input[name="tecnico_asignado"]').forEach(radio => {
                 radio.checked = false;
             });
-            document.querySelectorAll('.tecnicos-container tr').forEach(tr => {
+            document.querySelectorAll('.unidades-container tr').forEach(tr => {
                 tr.classList.remove('selected');
             });
             document.getElementById('observaciones_derivacion').value = '';
             
-            // Mostrar técnicos
-            mostrarTecnicos();
+            // Mostrar unidades
+            mostrarUnidades();
             
-            showModalCustom(derivacionTecnicoModalCustom);
+            showModalCustom(derivacionUnidadModalCustom);
         });
     }
     
     // Cerrar modal de derivación a técnico
-    document.getElementById('closeDerivacionTecnicoModal')?.addEventListener('click', () => {
-        hideModalCustom(derivacionTecnicoModalCustom);
+    document.getElementById('closeDerivacionUnidadModal')?.addEventListener('click', () => {
+        hideModalCustom(derivacionUnidadModalCustom);
     });
     
-    document.getElementById('cancelDerivacionTecnicoBtn')?.addEventListener('click', () => {
-        hideModalCustom(derivacionTecnicoModalCustom);
+    document.getElementById('cancelDerivacionUnidadBtn')?.addEventListener('click', () => {
+        hideModalCustom(derivacionUnidadModalCustom);
     });
     
     // Confirmar derivación a técnico
-    if (confirmarDerivacionTecnicoBtn) {
-        confirmarDerivacionTecnicoBtn.addEventListener('click', function() {
+    if (confirmarDerivacionUnidadBtn) {
+        confirmarDerivacionUnidadBtn.addEventListener('click', function() {
             const tecnicoSeleccionado = document.querySelector('input[name="tecnico_asignado"]:checked');
             
             // Validar que se haya seleccionado un técnico
@@ -937,29 +937,29 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Obtener datos del técnico seleccionado
             const tecnicoId = tecnicoSeleccionado.value;
-            const tecnico = funcionariosTecnicos.find(t => t.id == tecnicoId);
-            const nombreTecnico = tecnico ? tecnico.nombre : 'Técnico seleccionado';
+            const unidad = funcionariosUnidades.find(t => t.id == tecnicoId);
+            const nombreUnidad = unidad ? unidad.nombre : 'Unidad seleccionado';
             
             // Confirmar acción
-            if (confirm(`¿Está seguro de que desea derivar esta solicitud a: ${nombreTecnico}?`)) {
+            if (confirm(`¿Está seguro de que desea derivar esta solicitud a: ${nombreUnidad}?`)) {
                 // Enviar formulario
-                derivacionTecnicoFormCustom.action = `/bandeja/${solicitudActualId}/derivar-tecnico`;
-                derivacionTecnicoFormCustom.submit();
+                derivacionUnidadFormCustom.action = `/bandeja/${solicitudActualId}/derivar-unidad`;
+                derivacionUnidadFormCustom.submit();
             }
         });
     }
     
     // Cerrar modal de derivación con Escape y click en fondo
-    if (derivacionTecnicoModalCustom) {
-        derivacionTecnicoModalCustom.addEventListener('click', function(event) {
-            if (event.target === derivacionTecnicoModalCustom) {
-                hideModalCustom(derivacionTecnicoModalCustom);
+    if (derivacionUnidadModalCustom) {
+        derivacionUnidadModalCustom.addEventListener('click', function(event) {
+            if (event.target === derivacionUnidadModalCustom) {
+                hideModalCustom(derivacionUnidadModalCustom);
             }
         });
     }
     
     // Hacer la función global para que funcione el onclick
-    window.seleccionarTecnico = seleccionarTecnico;
+    window.seleccionarUnidad = seleccionarUnidad;
 
     function showSolicitudDetails() {
         solicitudDetailsPanel.classList.add('show');
@@ -1056,7 +1056,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Mostrar botones según la etapa
             if (solicitudData.etapa === 'Por validar ingreso') {
                 headerValidacionButtons.style.display = 'flex';
-            } else if (solicitudData.etapa === 'Por derivar a Técnico') {
+            } else if (solicitudData.etapa === 'Por derivar a Unidad') {
                 headerDerivacionButtons.style.display = 'flex';
             }
             
@@ -1285,8 +1285,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (reasignacionModalCustom && reasignacionModalCustom.classList.contains('show')) {
                 hideModalCustom(reasignacionModalCustom);
             }
-            if (derivacionTecnicoModalCustom && derivacionTecnicoModalCustom.classList.contains('show')) {
-                hideModalCustom(derivacionTecnicoModalCustom);
+            if (derivacionUnidadModalCustom && derivacionUnidadModalCustom.classList.contains('show')) {
+                hideModalCustom(derivacionUnidadModalCustom);
             }
         }
     });
@@ -1322,7 +1322,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!solicitudDetailsPanel.classList.contains('show') && 
             !(validacionModalCustom && validacionModalCustom.classList.contains('show')) &&
             !(reasignacionModalCustom && reasignacionModalCustom.classList.contains('show')) &&
-            !(derivacionTecnicoModalCustom && derivacionTecnicoModalCustom.classList.contains('show'))) {
+            !(derivacionUnidadModalCustom && derivacionUnidadModalCustom.classList.contains('show'))) {
             
             const currentUrl = new URL(window.location);
             fetch(currentUrl)
@@ -1452,7 +1452,7 @@ document.addEventListener('keydown', function(e) {
         const solicitudDetailsPanel = document.getElementById('solicitudDetailsPanel');
         const validacionModalCustom = document.getElementById('validacionModalCustom');
         const reasignacionModalCustom = document.getElementById('reasignacionModalCustom');
-        const derivacionTecnicoModalCustom = document.getElementById('derivacionTecnicoModalCustom');
+        const derivacionUnidadModalCustom = document.getElementById('derivacionUnidadModalCustom');
         
         if (solicitudDetailsPanel && solicitudDetailsPanel.classList.contains('show')) {
             solicitudDetailsPanel.classList.remove('show');
@@ -1469,8 +1469,8 @@ document.addEventListener('keydown', function(e) {
             document.body.style.overflow = '';
         }
         
-        if (derivacionTecnicoModalCustom && derivacionTecnicoModalCustom.classList.contains('show')) {
-            derivacionTecnicoModalCustom.classList.remove('show');
+        if (derivacionUnidadModalCustom && derivacionUnidadModalCustom.classList.contains('show')) {
+            derivacionUnidadModalCustom.classList.remove('show');
             document.body.style.overflow = '';
         }
     }
@@ -1563,7 +1563,7 @@ setInterval(function() {
     if (!solicitudDetailsPanel.classList.contains('show') && 
         !(validacionModalCustom && validacionModalCustom.classList.contains('show')) &&
         !(reasignacionModalCustom && reasignacionModalCustom.classList.contains('show')) &&
-        !(derivacionTecnicoModalCustom && derivacionTecnicoModalCustom.classList.contains('show'))) {
+        !(derivacionUnidadModalCustom && derivacionUnidadModalCustom.classList.contains('show'))) {
         
         const currentUrl = new URL(window.location);
         fetch(currentUrl)

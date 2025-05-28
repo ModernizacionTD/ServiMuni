@@ -42,15 +42,6 @@
                         <span>Ingresar Solicitud</span>
                     </a>
                 </li>
-                
-                @if(session('user_rol') == 'admin')
-                <li class="nav-item-app">
-                    <a href="{{ route('admin') }}" class="nav-link-app {{ request()->routeIs('admin') ? 'active' : '' }}">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Panel Admin</span>
-                    </a>
-                </li>
-                @endif
 
                 <!-- En app.blade.php, en la sección de navegación, agrega: -->
 
@@ -255,19 +246,6 @@
                             </div>
                             <i class="fas fa-chevron-right dropdown-item-arrow-app"></i>
                         </a>
-                        
-                        @if(session('user_rol') == 'admin')
-                        <a href="{{ route('admin') }}" class="dropdown-item-app">
-                            <div class="dropdown-item-icon-app">
-                                <i class="fas fa-cogs"></i>
-                            </div>
-                            <div class="dropdown-item-content-app">
-                                <span class="dropdown-item-title-app">Configuración</span>
-                                <span class="dropdown-item-subtitle-app">Panel de administración</span>
-                            </div>
-                            <i class="fas fa-chevron-right dropdown-item-arrow-app"></i>
-                        </a>
-                        @endif
                     </div>
                     
                     <!-- Separador -->
@@ -311,6 +289,9 @@
 // Esperar a que el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM cargado - inicializando scripts de layout');
+    
+    // ===== INICIALIZACIÓN DEL TEMA =====
+    initializeTheme();
     
     // Obtener referencias a elementos importantes
     const menuToggle = document.getElementById('menu-toggle-app');
@@ -361,40 +342,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const userDropdown = document.getElementById('user-dropdown-app');
     const dropdownMenu = document.getElementById('dropdown-menu-app');
     const dropdownArrow = document.getElementById('dropdown-arrow-app');
-    
-    if (userDropdown && dropdownMenu) {
-        userDropdown.addEventListener('click', function(e) {
+
+    if (userDropdown && dropdownMenu && dropdownArrow) {
+        // Solo abrir/cerrar el menú al hacer clic en la flecha
+        dropdownArrow.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             const isShowing = dropdownMenu.classList.contains('show');
-            
+
             // Cerrar todos los dropdowns primero
             document.querySelectorAll('.dropdown-menu-app.show').forEach(menu => {
                 menu.classList.remove('show');
             });
-            
+
             // Rotar flecha y mostrar/ocultar menú
             if (!isShowing) {
                 dropdownMenu.classList.add('show');
-                if (dropdownArrow) {
-                    dropdownArrow.style.transform = 'rotate(180deg)';
-                }
+                dropdownArrow.style.transform = 'rotate(180deg)';
             } else {
-                if (dropdownArrow) {
-                    dropdownArrow.style.transform = 'rotate(0deg)';
-                }
+                dropdownArrow.style.transform = 'rotate(0deg)';
             }
         });
-        
+
         // Cerrar dropdown al hacer clic fuera
         document.addEventListener('click', function(event) {
-            if (!userDropdown.contains(event.target) && 
-                dropdownMenu.classList.contains('show')) {
+            if (!dropdownMenu.contains(event.target) && dropdownMenu.classList.contains('show')) {
                 dropdownMenu.classList.remove('show');
-                if (dropdownArrow) {
-                    dropdownArrow.style.transform = 'rotate(0deg)';
-                }
+                dropdownArrow.style.transform = 'rotate(0deg)';
             }
         });
     }
@@ -416,27 +391,85 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Theme toggle functionality (si se implementa en el futuro)
-    const themeToggle = document.getElementById('theme-checkbox-app');
-    if (themeToggle) {
-        // Cargar tema guardado
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            themeToggle.checked = true;
-            document.body.classList.add('dark-theme');
-        }
-        
-        themeToggle.addEventListener('change', function() {
-            if (this.checked) {
-                document.body.classList.add('dark-theme');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.body.classList.remove('dark-theme');
-                localStorage.setItem('theme', 'light');
-            }
+    // ===== CONFIGURACIÓN DEL TEMA =====
+    setupThemeToggle();
+    
+    // Forzar submit del formulario de logout si hay algún conflicto JS
+    const logoutForm = document.getElementById('logout-form-app');
+    if (logoutForm) {
+        logoutForm.addEventListener('submit', function(e) {
+            // No prevengas el submit aquí
         });
     }
 });
+
+// ===== FUNCIONES DEL TEMA =====
+function initializeTheme() {
+    // Cargar tema guardado o usar tema por defecto (claro)
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    console.log('Tema guardado:', savedTheme);
+    
+    // Aplicar el tema al documento
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
+    
+    // Si el checkbox ya existe, sincronizarlo
+    const themeCheckbox = document.getElementById('theme-checkbox-app');
+    if (themeCheckbox) {
+        themeCheckbox.checked = savedTheme === 'dark';
+    }
+}
+
+function setupThemeToggle() {
+    const themeCheckbox = document.getElementById('theme-checkbox-app');
+    
+    if (themeCheckbox) {
+        // Configurar el estado inicial del checkbox
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        themeCheckbox.checked = currentTheme === 'dark';
+        
+        // Agregar evento de cambio
+        themeCheckbox.addEventListener('change', function() {
+            const newTheme = this.checked ? 'dark' : 'light';
+            
+            console.log('Cambiando tema a:', newTheme);
+            
+            // Aplicar el nuevo tema
+            document.documentElement.setAttribute('data-theme', newTheme);
+            
+            // Guardar la preferencia
+            localStorage.setItem('theme', newTheme);
+            
+            // Mostrar notificación
+            const themeName = newTheme === 'dark' ? 'Tema Oscuro' : 'Tema Claro';
+            showSystemNotification(`${themeName} activado`, 'success', 3000);
+        });
+    }
+}
+
+// Función para cambiar tema programáticamente (útil para debug)
+function toggleTheme() {
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    const themeCheckbox = document.getElementById('theme-checkbox-app');
+    if (themeCheckbox) {
+        themeCheckbox.checked = newTheme === 'dark';
+    }
+    
+    console.log('Tema cambiado a:', newTheme);
+}
+
+// Función para obtener el tema actual
+function getCurrentTheme() {
+    return localStorage.getItem('theme') || 'light';
+}
 
 // Función para mostrar notificaciones del sistema
 function showSystemNotification(message, type = 'info', duration = 5000) {
@@ -550,6 +583,7 @@ function confirmAction(message, callback) {
 
 <!-- Estilos adicionales para el theme toggle -->
 <style>
+/* ===== ESTILOS PARA EL THEME TOGGLE ===== */
 .theme-switch-app {
     margin-left: auto;
 }
@@ -564,7 +598,7 @@ function confirmAction(message, callback) {
     justify-content: space-between;
     width: 50px;
     height: 24px;
-    background: #e2e8f0;
+    background: var(--border-color);
     border-radius: 12px;
     position: relative;
     cursor: pointer;
@@ -572,14 +606,16 @@ function confirmAction(message, callback) {
 }
 
 .theme-checkbox-app:checked + .theme-label-app {
-    background: #374151;
+    background: var(--primary-color);
 }
 
 .theme-sun-app,
 .theme-moon-app {
     font-size: 0.7rem;
     padding: 2px;
-    color: #6b7280;
+    color: var(--text-muted);
+    transition: color var(--transition-speed);
+    z-index: 1;
 }
 
 .theme-slider-app {
@@ -596,6 +632,23 @@ function confirmAction(message, callback) {
 
 .theme-checkbox-app:checked + .theme-label-app .theme-slider-app {
     transform: translateX(26px);
+}
+
+/* Mejorar la visibilidad de los iconos */
+.theme-sun-app {
+    color: #f59e0b;
+}
+
+.theme-moon-app {
+    color: #6b7280;
+}
+
+.theme-checkbox-app:checked + .theme-label-app .theme-sun-app {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.theme-checkbox-app:checked + .theme-label-app .theme-moon-app {
+    color: white;
 }
 
 /* Responsive para el dropdown en móviles */
@@ -620,6 +673,22 @@ function confirmAction(message, callback) {
         height: 60px;
         font-size: 1.4rem;
     }
+}
+
+/* ===== ANIMACIONES ADICIONALES PARA EL CAMBIO DE TEMA ===== */
+.theme-toggle-app {
+    transition: background-color var(--transition-speed);
+}
+
+.theme-toggle-app:hover {
+    background-color: var(--bg-secondary);
+}
+
+/* Asegurar que todos los elementos tengan transiciones suaves */
+* {
+    transition: background-color var(--transition-speed), 
+                color var(--transition-speed), 
+                border-color var(--transition-speed);
 }
 </style>
 </body>

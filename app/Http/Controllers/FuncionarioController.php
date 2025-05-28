@@ -20,7 +20,7 @@ class FuncionarioController extends Controller
         $this->departamentoService = $departamentoService; // Inicializa la propiedad
     }
 
-
+    
     /**
      * Muestra la lista de funcionarios
      */
