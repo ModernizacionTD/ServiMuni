@@ -15,21 +15,33 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton('sheets', function ($app) {
             $client = new GoogleClient();
-            $client->setApplicationName(config('services.google.application_name'));
+            $client->setApplicationName('ServiMuni');
             
-            // Actualizado: Cambiar de READONLY a permisos completos para permitir escritura
-            $client->setScopes([
-                Sheets::SPREADSHEETS, // Permisos completos para leer y escribir
-                // Sheets::SPREADSHEETS_READONLY  // Solo lectura (comentado)
-            ]);
+            // Usar los scopes de la configuración
+            $client->setScopes(config('services.google.scopes', [Sheets::SPREADSHEETS]));
             
-            // Use service account
-            $serviceAccountPath = storage_path('app/google-credentials.json');
-            if (file_exists($serviceAccountPath)) {
+            // Buscar credenciales en múltiples ubicaciones
+            $credentialPaths = [
+                storage_path('app/google-credentials.json'),
+                storage_path('app/google/credentials.json'),
+                storage_path('app/credentials.json'),
+            ];
+            
+            $serviceAccountPath = null;
+            foreach ($credentialPaths as $path) {
+                if (file_exists($path)) {
+                    $serviceAccountPath = $path;
+                    break;
+                }
+            }
+            
+            if ($serviceAccountPath) {
                 $client->setAuthConfig($serviceAccountPath);
                 $client->setAccessType('offline');
+                \Log::info('Google credentials loaded from: ' . $serviceAccountPath);
             } else {
-                throw new \Exception('Google service account credentials file not found at: ' . $serviceAccountPath);
+                $searchedPaths = implode(', ', $credentialPaths);
+                throw new \Exception('Google service account credentials file not found. Searched in: ' . $searchedPaths);
             }
             
             return new Sheets($client);
