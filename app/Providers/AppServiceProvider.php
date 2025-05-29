@@ -23,7 +23,6 @@ class AppServiceProvider extends ServiceProvider
             // Buscar credenciales en múltiples ubicaciones
             $credentialPaths = [
                 storage_path('app/google-credentials.json'),
-                storage_path('app/google/credentials.json'),
                 storage_path('app/credentials.json'),
             ];
             
