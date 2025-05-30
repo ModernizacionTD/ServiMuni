@@ -583,54 +583,56 @@ document.addEventListener('DOMContentLoaded', function() {
         rutInput.classList.remove('is-valid', 'is-invalid');
     }
 
-    // Manejar cambio de tipo de persona
-    tipoPersonaSelect.addEventListener('change', function() {
-        const tipoPersona = this.value;
+// Manejar cambio de tipo de persona
+tipoPersonaSelect.addEventListener('change', function() {
+    const tipoPersona = this.value;
+    
+    console.log('Tipo de persona seleccionado:', tipoPersona);
+    
+    if (tipoPersona === 'Natural') {
+        camposPersonaNatural.style.display = 'block';
+        camposPersonaJuridica.style.display = 'none';
         
-        console.log('Tipo de persona seleccionado:', tipoPersona);
+        // Hacer requeridos los campos específicos
+        setRequiredFields(true);
         
-        if (tipoPersona === 'Natural') {
-            camposPersonaNatural.style.display = 'block';
-            camposPersonaJuridica.style.display = 'none';
-            
-            // Hacer requeridos los campos específicos
-            setRequiredFields(true);
-            
-            // Limpiar campos de persona jurídica
-            const nombreJuridica = document.getElementById('nombre_juridica');
-            if (nombreJuridica) {
-                nombreJuridica.value = '';
-                nombreJuridica.required = false;
-            }
-            
-        } else if (tipoPersona === 'Jurídica') {
-            camposPersonaNatural.style.display = 'none';
-            camposPersonaJuridica.style.display = 'block';
-            
-            // Quitar requeridos de campos de persona natural
-            setRequiredFields(false);
-            
-            // Hacer required el nombre jurídico
-            const nombreJuridica = document.getElementById('nombre_juridica');
-            if (nombreJuridica) {
-                nombreJuridica.required = true;
-            }
-            
-            // Limpiar campos de persona natural
-            if (nombreInput) nombreInput.value = '';
-            if (apellidosInput) apellidosInput.value = '';
-            if (fechaNacimientoInput) fechaNacimientoInput.value = '';
-            if (generoSelect) generoSelect.value = '';
-            if (nombreSocialInput) nombreSocialInput.value = '';
-            usoNsSelect.value = 'No';
-            campoNombreSocial.style.display = 'none';
-            
-        } else {
-            camposPersonaNatural.style.display = 'none';
-            camposPersonaJuridica.style.display = 'none';
-            setRequiredFields(false);
+        // Asegurarse que el campo nombre está activo y el nombre_juridica no
+        if (nombreInput) nombreInput.disabled = false;
+        const nombreJuridica = document.getElementById('nombre_juridica');
+        if (nombreJuridica) {
+            nombreJuridica.disabled = true;
+            nombreJuridica.required = false;
         }
-    });
+        
+    } else if (tipoPersona === 'Jurídica') {
+        camposPersonaNatural.style.display = 'none';
+        camposPersonaJuridica.style.display = 'block';
+        
+        // Quitar requeridos de campos de persona natural
+        setRequiredFields(false);
+        
+        // Desactivar nombre de persona natural y activar jurídica
+        if (nombreInput) nombreInput.disabled = true;
+        const nombreJuridica = document.getElementById('nombre_juridica');
+        if (nombreJuridica) {
+            nombreJuridica.disabled = false;
+            nombreJuridica.required = true;
+        }
+        
+        // Limpiar campos de persona natural pero no desactivar el nombre
+        if (apellidosInput) apellidosInput.value = '';
+        if (fechaNacimientoInput) fechaNacimientoInput.value = '';
+        if (generoSelect) generoSelect.value = '';
+        if (nombreSocialInput) nombreSocialInput.value = '';
+        usoNsSelect.value = 'No';
+        campoNombreSocial.style.display = 'none';
+        
+    } else {
+        camposPersonaNatural.style.display = 'none';
+        camposPersonaJuridica.style.display = 'none';
+        setRequiredFields(false);
+    }
+});
 
     // Manejar uso de nombre social
     usoNsSelect.addEventListener('change', function() {
